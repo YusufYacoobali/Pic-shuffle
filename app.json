@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Pic Shuffle",
+    "slug": "pic-shuffle",
+    "scheme": "picshuffle",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF4FA"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.picshuffle.game"
+    },
+    "android": {
+      "package": "com.picshuffle.game",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#FFF4FA"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "play-reminders"
+        }
+      ],
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pic Shuffle needs access to your photos so you can turn one into a puzzle."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}

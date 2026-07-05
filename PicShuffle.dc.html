@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{ -webkit-tap-highlight-color: transparent; }
+  @keyframes floaty { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+  @keyframes pop { 0%{ transform:scale(.6); opacity:0;} 60%{ transform:scale(1.06);} 100%{ transform:scale(1); opacity:1;} }
+  @keyframes pulse { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.06);} }
+  @keyframes screenIn { from{ transform:translateY(12px);} to{ transform:translateY(0);} }
+  @keyframes slideUp { from{ transform:translateY(100%);} to{ transform:translateY(0);} }
+  @keyframes fall { from{ transform:translateY(-30px) rotate(0); opacity:1;} to{ transform:translateY(900px) rotate(720deg); opacity:1;} }
+</style>
+</helmet>
+<x-import component="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+<div style="{{ rootStyle }}">
+
+  <!-- ============ HOME · LEVEL MAP ============ -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div onClick="{{ onSettings }}" style="position:absolute; top:58px; right:18px; z-index:6; width:42px; height:42px; border-radius:50%; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); box-shadow:0 4px 12px rgba(123,92,255,.14); display:flex; align-items:center; justify-content:center; cursor:pointer;" style-active="transform:scale(.92)">
+    <div style="display:flex; flex-direction:column; gap:4px; width:20px;">
+      <div style="position:relative; height:3px; border-radius:2px; background:var(--ink,#2A2140);"><div style="position:absolute; top:50%; left:2px; transform:translateY(-50%); width:7px; height:7px; border-radius:50%; background:var(--surface,#fff); border:2px solid var(--ink,#2A2140);"></div></div>
+      <div style="position:relative; height:3px; border-radius:2px; background:var(--ink,#2A2140);"><div style="position:absolute; top:50%; right:2px; transform:translateY(-50%); width:7px; height:7px; border-radius:50%; background:var(--surface,#fff); border:2px solid var(--ink,#2A2140);"></div></div>
+      <div style="position:relative; height:3px; border-radius:2px; background:var(--ink,#2A2140);"><div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:7px; height:7px; border-radius:50%; background:var(--surface,#fff); border:2px solid var(--ink,#2A2140);"></div></div>
+    </div>
+  </div>
+
+  <div style="flex:1; min-height:0; overflow-y:auto; padding:4px 18px 22px; display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:4px;">
+      <div style="position:relative; width:104px; height:96px; animation:floaty 3s ease-in-out infinite;">
+        <div style="position:absolute; top:0; left:12px; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:30px solid #FBEFE2; transform:rotate(-16deg);"></div>
+        <div style="position:absolute; top:9px; left:20px; width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:15px solid #FFB3D1; transform:rotate(-16deg);"></div>
+        <div style="position:absolute; top:0; right:12px; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:30px solid #FBEFE2; transform:rotate(16deg);"></div>
+        <div style="position:absolute; top:9px; right:20px; width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:15px solid #FFB3D1; transform:rotate(16deg);"></div>
+        <div style="position:absolute; top:14px; left:50%; transform:translateX(-50%); width:84px; height:78px; border-radius:46% 46% 48% 48% / 52% 52% 48% 48%; background:#FBEFE2; box-shadow:0 8px 18px rgba(123,92,255,.18), inset 0 -6px 10px rgba(0,0,0,.04);">
+          <div style="position:absolute; top:30px; left:19px; width:11px; height:15px; border-radius:50%; background:#3a2e22;"><div style="position:absolute; top:2px; right:1px; width:4px; height:4px; border-radius:50%; background:#fff;"></div></div>
+          <div style="position:absolute; top:30px; right:19px; width:11px; height:15px; border-radius:50%; background:#3a2e22;"><div style="position:absolute; top:2px; right:1px; width:4px; height:4px; border-radius:50%; background:#fff;"></div></div>
+          <div style="position:absolute; top:44px; left:7px; width:15px; height:11px; border-radius:50%; background:#FF9DC4; opacity:.85;"></div>
+          <div style="position:absolute; top:44px; right:7px; width:15px; height:11px; border-radius:50%; background:#FF9DC4; opacity:.85;"></div>
+          <div style="position:absolute; top:43px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid #FF6FA5;"></div>
+          <div style="position:absolute; top:49px; left:50%; transform:translateX(-7px); width:7px; height:6px; border:2px solid #3a2e22; border-top:0; border-right:0; border-radius:0 0 0 7px;"></div>
+          <div style="position:absolute; top:49px; left:50%; transform:translateX(0); width:7px; height:6px; border:2px solid #3a2e22; border-top:0; border-left:0; border-radius:0 0 7px 0;"></div>
+        </div>
+      </div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:700; font-size:37px; line-height:1.05; white-space:nowrap; color:var(--ink,#2A2140); margin-top:4px;">Pic Shuffle</div>
+      <div style="display:inline-flex; align-items:center; gap:7px; margin-top:10px; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); padding:6px 14px; border-radius:999px; box-shadow:0 4px 12px rgba(123,92,255,.08);">
+        <span style="width:9px; height:9px; border-radius:50%; background:#3DD6C4;"></span>
+        <span style="font-family:Fredoka,sans-serif; font-weight:600; font-size:13px; white-space:nowrap; color:var(--ink,#2A2140);">{{ progressText }}</span>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:11px;">
+      <sc-for list="{{ levelNodes }}" as="n" hint-placeholder-count="12">
+        <div onClick="{{ n.onClick }}" style="{{ n.cardStyle }}" style-active="transform:scale(.985)">
+          <div style="{{ n.nodeStyle }}">
+            <sc-if value="{{ n.current }}">{{ n.num }}</sc-if>
+            <sc-if value="{{ n.done }}"><span style="font-size:19px; font-weight:800; line-height:1;">✓</span></sc-if>
+            <sc-if value="{{ n.locked }}">
+              <div style="position:relative; width:16px; height:15px;">
+                <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:9px; height:8px; border:2.5px solid currentColor; border-bottom:0; border-radius:6px 6px 0 0;"></div>
+                <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:16px; height:9px; border-radius:3px; background:currentColor;"></div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="{{ n.thumbStyle }}"></div>
+          <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;">
+            <div style="font-family:Fredoka,sans-serif; font-weight:600; font-size:16px; color:var(--ink,#2A2140);">Level {{ n.num }}</div>
+            <div style="font-weight:700; font-size:12.5px; color:var(--muted,#9A8FB0);">{{ n.metaText }}</div>
+          </div>
+          <sc-if value="{{ n.current }}">
+            <div style="display:flex; align-items:center; gap:6px; background:#FF5CA8; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:14px; padding:9px 15px; border-radius:999px; box-shadow:0 4px 0 #D63E89; animation:pulse 1.4s ease-in-out infinite;">
+              <span style="width:0; height:0; border-left:8px solid #fff; border-top:5px solid transparent; border-bottom:5px solid transparent;"></span>Play
+            </div>
+          </sc-if>
+          <sc-if value="{{ n.done }}">
+            <div style="background:transparent; color:#2AA99A; border:2px solid #3DD6C4; font-family:Fredoka,sans-serif; font-weight:700; font-size:13px; padding:6px 13px; border-radius:999px;">Replay</div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ LEVEL READY ============ -->
+  <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1; min-height:0; overflow-y:auto; padding:4px 18px 20px; display:flex; flex-direction:column; animation:screenIn .3s ease;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div onClick="{{ onHome }}" style="width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); color:var(--ink,#2A2140); font-size:24px; font-weight:700; cursor:pointer; padding-bottom:3px;" style-active="transform:scale(.92)">‹</div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:700; font-size:24px; color:var(--ink,#2A2140);">Level {{ readyNum }}</div>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;">
+      <div style="{{ picPreviewStyle }}"></div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:600; font-size:22px; color:var(--ink,#2A2140);">{{ pic.name }}</div>
+      <div style="display:flex; gap:10px;">
+        <span style="{{ sizeChipStyle }}">{{ sizeLabel }}</span>
+        <span style="{{ modeChipStyle }}">{{ readyModeLabel }}</span>
+      </div>
+    </div>
+    <div onClick="{{ onPlay }}" style="display:flex; align-items:center; justify-content:center; height:60px; border-radius:20px; background:#FF5CA8; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:22px; box-shadow:0 6px 0 #D63E89; cursor:pointer;" style-active="transform:translateY(3px); box-shadow:0 3px 0 #D63E89;">Play</div>
+  </div>
+  </sc-if>
+
+  <!-- ============ PLAY ============ -->
+  <sc-if value="{{ isPlay }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1; min-height:0; display:flex; flex-direction:column; padding:4px 18px 16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div onClick="{{ onHome }}" style="width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); color:var(--ink,#2A2140); font-size:21px; font-weight:700; cursor:pointer;" style-active="transform:scale(.92)">✕</div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:600; font-size:19px; color:var(--ink,#2A2140);">Level {{ readyNum }}</div>
+      <div onClick="{{ onRestart }}" style="width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); color:var(--ink,#2A2140); font-size:22px; cursor:pointer;" style-active="transform:scale(.92) rotate(-40deg)">↻</div>
+    </div>
+
+    <div style="display:flex; gap:9px; justify-content:center; margin-top:14px;">
+      <div style="display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); font-family:Fredoka,sans-serif; font-weight:700; font-size:15px; color:var(--muted,#9A8FB0);">Moves <span style="color:var(--ink,#2A2140);">{{ moves }}</span></div>
+      <div style="{{ timerStyle }}">{{ timeStr }}</div>
+      <div style="display:flex; align-items:center; padding:8px 14px; border-radius:999px; background:var(--surface,#fff); border:1px solid var(--cardBorder,rgba(0,0,0,.06)); font-family:Fredoka,sans-serif; font-weight:700; font-size:15px; color:var(--muted,#9A8FB0);">{{ modeLabel }}</div>
+    </div>
+
+    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+      <div style="position:relative; width:100%; max-width:340px;">
+        <div ref="{{ boardSetRef }}" style="{{ boardStyle }}">
+          <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="9">
+            <div ref="{{ t.setRef }}" onPointerDown="{{ t.onPointerDown }}" style="{{ t.style }}"></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ peeking }}">
+          <div style="{{ peekStyle }}">
+            <span style="background:#FFD93D; color:#5a4a00; font-family:Fredoka,sans-serif; font-weight:700; font-size:13px; padding:5px 14px; border-radius:999px; box-shadow:0 4px 10px rgba(0,0,0,.18);">Original</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px;">
+      <div onClick="{{ onPeek }}" style="flex:1; display:flex; align-items:center; justify-content:center; height:54px; border-radius:18px; background:#7B5CFF; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:18px; box-shadow:0 5px 0 #5B3FD6; cursor:pointer;" style-active="transform:translateY(2px); box-shadow:0 3px 0 #5B3FD6;">Peek</div>
+      <div onClick="{{ onRestart }}" style="flex:1; display:flex; align-items:center; justify-content:center; height:54px; border-radius:18px; background:var(--surface,#fff); color:var(--ink,#2A2140); border:2px solid var(--cardBorder,rgba(0,0,0,.06)); font-family:Fredoka,sans-serif; font-weight:700; font-size:18px; box-shadow:0 4px 0 var(--cardBorder,rgba(0,0,0,.06)); cursor:pointer;" style-active="transform:translateY(2px); box-shadow:none;">Shuffle</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ WIN OVERLAY ============ -->
+  <sc-if value="{{ isWin }}">
+  <div style="position:absolute; inset:0; z-index:80; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:26px; background:var(--wash); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); overflow:hidden;">
+    <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
+      <div style="{{ c.style }}"></div>
+    </sc-for>
+    <div style="position:relative; z-index:2; width:100%; max-width:320px; background:var(--card); border-radius:30px; padding:26px 22px 22px; box-shadow:0 30px 60px rgba(0,0,0,.32); display:flex; flex-direction:column; align-items:center; text-align:center; animation:pop .45s cubic-bezier(.2,1.4,.4,1);">
+      <div style="position:relative; width:118px; height:108px; margin-top:-2px;">
+        <div style="position:absolute; top:0; left:14px; width:0; height:0; border-left:23px solid transparent; border-right:23px solid transparent; border-bottom:34px solid #FBEFE2; transform:rotate(-16deg);"></div>
+        <div style="position:absolute; top:10px; left:23px; width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-bottom:17px solid #FFB3D1; transform:rotate(-16deg);"></div>
+        <div style="position:absolute; top:0; right:14px; width:0; height:0; border-left:23px solid transparent; border-right:23px solid transparent; border-bottom:34px solid #FBEFE2; transform:rotate(16deg);"></div>
+        <div style="position:absolute; top:10px; right:23px; width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-bottom:17px solid #FFB3D1; transform:rotate(16deg);"></div>
+        <div style="position:absolute; top:16px; left:50%; transform:translateX(-50%); width:94px; height:88px; border-radius:46% 46% 48% 48% / 52% 52% 48% 48%; background:#FBEFE2; box-shadow:0 8px 18px rgba(0,0,0,.16), inset 0 -6px 10px rgba(0,0,0,.04);">
+          <div style="position:absolute; top:34px; left:21px; width:16px; height:9px; border:3px solid #3a2e22; border-bottom:0; border-radius:9px 9px 0 0;"></div>
+          <div style="position:absolute; top:34px; right:21px; width:16px; height:9px; border:3px solid #3a2e22; border-bottom:0; border-radius:9px 9px 0 0;"></div>
+          <div style="position:absolute; top:50px; left:6px; width:17px; height:12px; border-radius:50%; background:#FF9DC4; opacity:.85;"></div>
+          <div style="position:absolute; top:50px; right:6px; width:17px; height:12px; border-radius:50%; background:#FF9DC4; opacity:.85;"></div>
+          <div style="position:absolute; top:49px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid #FF6FA5;"></div>
+          <div style="position:absolute; top:55px; left:50%; transform:translateX(-50%); width:18px; height:11px; border:3px solid #3a2e22; border-top:0; border-radius:0 0 18px 18px;"></div>
+        </div>
+      </div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:700; font-size:30px; color:var(--ink,#2A2140); margin-top:8px;">{{ winTitle }}</div>
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <div style="display:flex; flex-direction:column; align-items:center; background:var(--surface2,#FFF6FB); border-radius:16px; padding:10px 18px; min-width:84px;">
+          <span style="font-family:Fredoka,sans-serif; font-weight:700; font-size:22px; color:#3DD6C4;">{{ statsTime }}</span>
+          <span style="font-weight:800; font-size:11px; color:var(--muted,#9A8FB0); text-transform:uppercase; letter-spacing:.5px;">Time</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; background:var(--surface2,#FFF6FB); border-radius:16px; padding:10px 18px; min-width:84px;">
+          <span style="font-family:Fredoka,sans-serif; font-weight:700; font-size:22px; color:#FF5CA8;">{{ statsMoves }}</span>
+          <span style="font-weight:800; font-size:11px; color:var(--muted,#9A8FB0); text-transform:uppercase; letter-spacing:.5px;">Moves</span>
+        </div>
+      </div>
+      <sc-if value="{{ hasNext }}">
+        <div onClick="{{ onNext }}" style="align-self:stretch; display:flex; align-items:center; justify-content:center; height:54px; border-radius:18px; background:#FF5CA8; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:19px; box-shadow:0 5px 0 #D63E89; cursor:pointer; margin-top:18px;" style-active="transform:translateY(2px); box-shadow:0 3px 0 #D63E89;">Next level</div>
+      </sc-if>
+      <sc-if value="{{ allDone }}">
+        <div onClick="{{ onHome }}" style="align-self:stretch; display:flex; align-items:center; justify-content:center; height:54px; border-radius:18px; background:#7B5CFF; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:19px; box-shadow:0 5px 0 #5B3FD6; cursor:pointer; margin-top:18px;" style-active="transform:translateY(2px); box-shadow:0 3px 0 #5B3FD6;">Back to map</div>
+      </sc-if>
+      <div style="display:flex; gap:24px; margin-top:14px;">
+        <div onClick="{{ onReplay }}" style="font-family:Fredoka,sans-serif; font-weight:600; font-size:16px; color:var(--muted,#9A8FB0); cursor:pointer;" style-active="transform:scale(.96)">Replay</div>
+        <div onClick="{{ onHome }}" style="font-family:Fredoka,sans-serif; font-weight:600; font-size:16px; color:var(--muted,#9A8FB0); cursor:pointer;" style-active="transform:scale(.96)">Map</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ TIME UP OVERLAY ============ -->
+  <sc-if value="{{ isTimeUp }}">
+  <div style="position:absolute; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:26px; background:var(--wash); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);">
+    <div style="width:100%; max-width:320px; background:var(--card); border-radius:30px; padding:28px 22px 22px; box-shadow:0 30px 60px rgba(0,0,0,.32); display:flex; flex-direction:column; align-items:center; text-align:center; animation:pop .4s cubic-bezier(.2,1.4,.4,1);">
+      <div style="position:relative; width:118px; height:108px;">
+        <div style="position:absolute; top:0; left:14px; width:0; height:0; border-left:23px solid transparent; border-right:23px solid transparent; border-bottom:34px solid #FBEFE2; transform:rotate(-16deg);"></div>
+        <div style="position:absolute; top:0; right:14px; width:0; height:0; border-left:23px solid transparent; border-right:23px solid transparent; border-bottom:34px solid #FBEFE2; transform:rotate(16deg);"></div>
+        <div style="position:absolute; top:16px; left:50%; transform:translateX(-50%); width:94px; height:88px; border-radius:46% 46% 48% 48% / 52% 52% 48% 48%; background:#FBEFE2; box-shadow:0 8px 18px rgba(0,0,0,.16), inset 0 -6px 10px rgba(0,0,0,.04);">
+          <div style="position:absolute; top:36px; left:21px; width:12px; height:15px; border-radius:50%; background:#3a2e22;"></div>
+          <div style="position:absolute; top:36px; right:21px; width:12px; height:15px; border-radius:50%; background:#3a2e22;"></div>
+          <div style="position:absolute; top:62px; left:50%; transform:translateX(-50%) rotate(180deg); width:16px; height:9px; border:3px solid #3a2e22; border-bottom:0; border-radius:9px 9px 0 0;"></div>
+        </div>
+      </div>
+      <div style="font-family:Fredoka,sans-serif; font-weight:700; font-size:28px; color:var(--ink,#2A2140); margin-top:8px;">Time's up!</div>
+      <div style="font-weight:700; font-size:15px; color:var(--muted,#9A8FB0); margin-top:6px;">So close — give it another go?</div>
+      <div onClick="{{ onReplay }}" style="align-self:stretch; display:flex; align-items:center; justify-content:center; height:54px; border-radius:18px; background:#FF5CA8; color:#fff; font-family:Fredoka,sans-serif; font-weight:700; font-size:19px; box-shadow:0 5px 0 #D63E89; cursor:pointer; margin-top:20px;" style-active="transform:translateY(2px); box-shadow:0 3px 0 #D63E89;">Try again</div>
+      <div onClick="{{ onHome }}" style="margin-top:12px; font-family:Fredoka,sans-serif; font-weight:600; font-size:16px; color:var(--muted,#9A8FB0); cursor:pointer;" style-active="transform:scale(.96)">Back to map</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ SETTINGS SHEET ============ -->
+  <sc-if value="{{ settingsOpen }}">
+  <div onClick="{{ onCloseSettings }}" style="position:absolute; inset:0; z-index:95; background:var(--wash); display:flex; flex-direction:column; justify-content:flex-end;">
+    <div onClick="{{ stopProp }}" style="background:var(--card); border-radius:28px 28px 0 0; padding:14px 22px 30px; box-shadow:0 -12px 44px rgba(0,0,0,.24); animation:slideUp .3s cubic-bezier(.2,1,.3,1);">
+      <div style="width:44px; height:5px; border-radius:99px; background:var(--cardBorder,rgba(0,0,0,.12)); margin:0 auto 16px;"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <div style="font-family:Fredoka,sans-serif; font-weight:700; font-size:23px; color:var(--ink,#2A2140);">Settings</div>
+        <div onClick="{{ onCloseSettings }}" style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface2,#FFF6FB); color:var(--muted,#9A8FB0); font-size:18px; font-weight:700; cursor:pointer;" style-active="transform:scale(.92)">✕</div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;">
+        <div style="display:flex; align-items:center; gap:13px;">
+          <span style="width:32px; height:32px; border-radius:10px; background:#3DD6C4; display:flex; align-items:center; justify-content:center;"><span style="width:11px; height:11px; border-radius:50%; background:#fff;"></span></span>
+          <span style="font-weight:800; font-size:16px; color:var(--ink,#2A2140);">Sound effects</span>
+        </div>
+        <div onClick="{{ onToggleSound }}" style="{{ soundTrackStyle }}"><div style="{{ soundKnobStyle }}"></div></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;">
+        <div style="display:flex; align-items:center; gap:13px;">
+          <span style="width:32px; height:32px; border-radius:10px; background:#7B5CFF; display:flex; align-items:center; justify-content:center;"><span style="width:11px; height:11px; border-radius:50%; background:#fff;"></span></span>
+          <span style="font-weight:800; font-size:16px; color:var(--ink,#2A2140);">Music</span>
+        </div>
+        <div onClick="{{ onToggleMusic }}" style="{{ musicTrackStyle }}"><div style="{{ musicKnobStyle }}"></div></div>
+      </div>
+
+      <div style="height:1px; background:var(--cardBorder,rgba(0,0,0,.08)); margin:10px 0 16px;"></div>
+
+      <div onClick="{{ onResetProgress }}" style="display:flex; align-items:center; justify-content:center; height:50px; border-radius:16px; background:transparent; border:2px solid #FF5CA8; color:#FF5CA8; font-family:Fredoka,sans-serif; font-weight:700; font-size:16px; cursor:pointer;" style-active="transform:scale(.97)">Reset progress</div>
+      <div style="text-align:center; font-weight:700; font-size:12px; color:var(--muted,#9A8FB0); margin-top:16px;">Pic Shuffle · v1.0</div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:874},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;candy&quot;,&quot;jelly&quot;],&quot;default&quot;:&quot;candy&quot;,&quot;tsType&quot;:&quot;'candy'|'jelly'&quot;}}">
+const PICTURES = [
+  { id:0, name:'Sunny Hills', bg:'radial-gradient(circle at 76% 24%, #FFD93D 0 8%, rgba(255,217,61,0) 8.7%), radial-gradient(circle at 50% 132%, #57D98E 0 48%, rgba(87,217,142,0) 48.6%), radial-gradient(circle at 6% 150%, #2FB7C9 0 56%, rgba(47,183,201,0) 56.6%), linear-gradient(180deg,#9BE0FF 0%, #D8F4FF 62%)' },
+  { id:1, name:'Splash', bg:'radial-gradient(circle at 28% 26%, rgba(255,255,255,.65) 0 4%, rgba(255,255,255,0) 4.7%), radial-gradient(circle at 68% 56%, rgba(255,255,255,.5) 0 6%, rgba(255,255,255,0) 6.7%), radial-gradient(circle at 52% 84%, rgba(255,255,255,.45) 0 5%, rgba(255,255,255,0) 5.7%), linear-gradient(155deg,#3DD6C4 0%, #2A8FE0 100%)' },
+  { id:2, name:'Sunset', bg:'radial-gradient(circle at 50% 28%, #FFF1B8 0 11%, rgba(255,241,184,0) 11.6%), linear-gradient(180deg,#FF8A5C 0 24%, #FFB14B 24% 44%, #FFD93D 44% 60%, #FF7AA8 60% 80%, #C45CFF 80%)' },
+  { id:3, name:'Galaxy', bg:'radial-gradient(circle at 20% 24%, #fff 0 1.2%, transparent 1.7%), radial-gradient(circle at 66% 16%, #fff 0 1%, transparent 1.5%), radial-gradient(circle at 82% 58%, #fff 0 1.4%, transparent 1.9%), radial-gradient(circle at 34% 74%, #fff 0 1%, transparent 1.5%), radial-gradient(circle at 76% 86%, #FF5CA8 0 7%, rgba(255,92,168,0) 7.7%), linear-gradient(150deg,#7B5CFF 0%, #C45CFF 52%, #FF5CA8 100%)' },
+  { id:4, name:'Meadow', bg:'radial-gradient(circle at 25% 70%, #FF5CA8 0 4%, transparent 4.6%), radial-gradient(circle at 60% 56%, #FFD93D 0 4%, transparent 4.6%), radial-gradient(circle at 82% 78%, #FF8A5C 0 4%, transparent 4.6%), radial-gradient(circle at 44% 86%, #C45CFF 0 3.4%, transparent 4%), linear-gradient(180deg,#A7E86B 0%, #57D98E 68%, #2FB79A 100%)' },
+  { id:5, name:'Bubblegum', bg:'radial-gradient(circle at 24% 30%, #FFC83D 0 18%, rgba(255,200,61,0) 18.7%), radial-gradient(circle at 78% 34%, #3DD6C4 0 20%, rgba(61,214,196,0) 20.7%), radial-gradient(circle at 70% 80%, #7B5CFF 0 22%, rgba(123,92,255,0) 22.7%), radial-gradient(circle at 22% 82%, #FF5CA8 0 20%, rgba(255,92,168,0) 20.7%), linear-gradient(180deg,#FFE3F1, #FFF3D6)' },
+];
+const LEVELS = [
+  { pic:0, grid:2, mode:'relaxed' },
+  { pic:5, grid:2, mode:'relaxed' },
+  { pic:1, grid:3, mode:'relaxed' },
+  { pic:2, grid:3, mode:'relaxed' },
+  { pic:4, grid:3, mode:'timed' },
+  { pic:3, grid:4, mode:'relaxed' },
+  { pic:0, grid:4, mode:'timed' },
+  { pic:5, grid:4, mode:'relaxed' },
+  { pic:1, grid:5, mode:'relaxed' },
+  { pic:2, grid:5, mode:'timed' },
+  { pic:4, grid:6, mode:'relaxed' },
+  { pic:3, grid:6, mode:'timed' },
+];
+const TIMED = {2:40,3:75,4:150,5:260,6:380};
+const DARKER = {'#FF5CA8':'#D63E89','#FFC83D':'#E0A618','#3DD6C4':'#2AA99A','#7B5CFF':'#5B3FD6'};
+const SIZECOLOR = {Easy:'#3DD6C4',Normal:'#FFC83D',Hard:'#FF5CA8',Expert:'#7B5CFF'};
+function sizeName(g){ return g<=3 ? 'Easy' : g===4 ? 'Normal' : g===5 ? 'Hard' : 'Expert'; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function fmt(s){ const m=Math.floor(s/60); const r=s%60; return m+':'+String(r).padStart(2,'0'); }
+
+class Component extends DCLogic {
+  state = { screen:'home', levelIdx:0, grid:2, mode:'relaxed', tiles:[], moves:0, seconds:0, running:false, solved:false, result:null, peeking:false, dragCell:null, hover:null, dragDX:0, dragDY:0, unlocked:1, completed:[], settingsOpen:false, sound:true, music:true };
+  slotRefs = [];
+  boardRef = null;
+  confetti = [];
+
+  componentDidMount(){
+    try {
+      const u = parseInt(localStorage.getItem('picshuffle.unlocked'), 10);
+      const c = JSON.parse(localStorage.getItem('picshuffle.completed') || '[]');
+      const s = JSON.parse(localStorage.getItem('picshuffle.settings') || 'null');
+      const next = {};
+      if (u && u >= 1) next.unlocked = Math.min(u, LEVELS.length);
+      if (Array.isArray(c)) next.completed = c.filter(x => Number.isInteger(x));
+      if (s) { if (typeof s.sound === 'boolean') next.sound = s.sound; if (typeof s.music === 'boolean') next.music = s.music; }
+      if (Object.keys(next).length) this.setState(next);
+    } catch (e) {}
+  }
+
+  componentWillUnmount(){
+    clearInterval(this.timer); clearTimeout(this._peek);
+    window.removeEventListener('pointermove', this.onMove);
+    window.removeEventListener('pointerup', this.onUp);
+  }
+
+  persist(){
+    try {
+      localStorage.setItem('picshuffle.unlocked', String(this.state.unlocked));
+      localStorage.setItem('picshuffle.completed', JSON.stringify(this.state.completed));
+      localStorage.setItem('picshuffle.settings', JSON.stringify({ sound:this.state.sound, music:this.state.music }));
+    } catch (e) {}
+  }
+
+  theme(){
+    const t = this.props.theme || 'candy';
+    const base = { '--p1':'#FF5CA8','--p2':'#FFC83D','--p3':'#3DD6C4','--p4':'#7B5CFF' };
+    if (t === 'jelly') {
+      return { dark:true, vars:{ ...base,
+        '--bg':'radial-gradient(120% 85% at 50% -10%, #3A2A5C 0%, #241A3A 46%, #160F24 100%)',
+        '--surface':'rgba(255,255,255,0.08)', '--surface2':'rgba(255,255,255,0.10)',
+        '--ink':'#FFFFFF', '--muted':'rgba(255,255,255,0.58)',
+        '--board':'rgba(255,255,255,0.06)',
+        '--boardShadow':'inset 0 0 0 1px rgba(255,255,255,0.10), 0 12px 34px rgba(0,0,0,0.45)',
+        '--cardBorder':'rgba(255,255,255,0.14)', '--card':'#271B40', '--wash':'rgba(8,4,18,0.6)' } };
+    }
+    return { dark:false, vars:{ ...base,
+      '--bg':'linear-gradient(180deg,#FFF4FA 0%, #FFFBEF 100%)',
+      '--surface':'#FFFFFF', '--surface2':'#FFF6FB',
+      '--ink':'#2A2140', '--muted':'#9A8FB0',
+      '--board':'#FFFFFF',
+      '--boardShadow':'0 12px 26px rgba(123,92,255,0.16), inset 0 0 0 1px rgba(0,0,0,0.04)',
+      '--cardBorder':'rgba(0,0,0,0.06)', '--card':'#FFFFFF', '--wash':'rgba(42,33,64,0.34)' } };
+  }
+
+  startTimer(){
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.setState(st => {
+        if (!st.running) return null;
+        if (st.mode === 'timed') {
+          const ns = st.seconds - 1;
+          if (ns <= 0) { clearInterval(this.timer); this.afterTimeUp(); return { seconds:0, running:false }; }
+          return { seconds: ns };
+        }
+        return { seconds: st.seconds + 1 };
+      });
+    }, 1000);
+  }
+
+  afterTimeUp(){ setTimeout(() => this.setState({ result:'timeup' }), 60); }
+
+  openLevel(i){
+    if (i >= this.state.unlocked || i < 0) return;
+    const lv = LEVELS[i];
+    this.setState({ levelIdx:i, grid:lv.grid, mode:lv.mode, screen:'ready', result:null, peeking:false, solved:false });
+  }
+
+  startGame = () => {
+    const grid = this.state.grid, n = grid*grid;
+    let perm; do { perm = shuffle([...Array(n).keys()]); } while (perm.every((h,i) => h===i));
+    const timed = this.state.mode === 'timed';
+    this.slotRefs = new Array(n).fill(null);
+    this.confetti = [];
+    this.setState({ screen:'play', tiles:perm, moves:0, seconds: timed?TIMED[grid]:0, running:true, solved:false, result:null, peeking:false, dragCell:null, hover:null, dragDX:0, dragDY:0 });
+    this.startTimer();
+  };
+
+  onNext = () => {
+    const n = this.state.levelIdx + 1;
+    if (n < LEVELS.length) { const lv = LEVELS[n]; this.setState({ levelIdx:n, grid:lv.grid, mode:lv.mode, screen:'ready', result:null, peeking:false, solved:false }); }
+    else this.goHome();
+  };
+
+  goHome = () => { clearInterval(this.timer); this.setState({ screen:'home', running:false, result:null, peeking:false, solved:false }); };
+
+  peek = () => {
+    if (this.state.peeking || this.state.result) return;
+    this.setState({ peeking:true });
+    clearTimeout(this._peek);
+    this._peek = setTimeout(() => this.setState({ peeking:false }), 1300);
+  };
+
+  finishWin(){
+    clearInterval(this.timer);
+    const idx = this.state.levelIdx;
+    this.confetti = Array.from({length:24}, (_, i) => {
+      const c = ['#FF5CA8','#FFC83D','#3DD6C4','#7B5CFF','#FF8A5C','#57D98E'][i % 6];
+      const dur = 2.4 + Math.random()*1.8;
+      const delay = Math.random()*0.5;
+      const size = 7 + Math.random()*9;
+      const round = Math.random() > 0.5;
+      return { style:{ position:'absolute', top:'-26px', left:(Math.random()*100)+'%', width:size+'px', height:size+'px', background:c, borderRadius: round?'50%':'3px', animation:'fall '+dur+'s '+delay+'s linear forwards', zIndex:1 } };
+    });
+    const completed = this.state.completed.includes(idx) ? this.state.completed : [...this.state.completed, idx];
+    const unlocked = Math.min(LEVELS.length, Math.max(this.state.unlocked, idx + 2));
+    this.setState({ completed, unlocked });
+    setTimeout(() => { this.setState({ result:'win', running:false }); this.persist(); }, 760);
+  }
+
+  startDrag(cell, e){
+    if (this.state.solved || this.state.result) return;
+    e.preventDefault();
+    const board = this.boardRef; if (!board) return;
+    const br = board.getBoundingClientRect();
+    this.scale = (br.width / board.offsetWidth) || 1;
+    this.rects = this.slotRefs.map(el => el ? el.getBoundingClientRect() : null);
+    this.startX = e.clientX; this.startY = e.clientY;
+    this._from = cell; this._dragging = true; this._hv = cell; this._raf = null;
+    this.setState({ dragCell:cell, hover:cell, dragDX:0, dragDY:0 });
+    window.addEventListener('pointermove', this.onMove);
+    window.addEventListener('pointerup', this.onUp);
+  }
+
+  onMove = (e) => {
+    if (!this._dragging) return;
+    const dx = (e.clientX - this.startX) / this.scale;
+    const dy = (e.clientY - this.startY) / this.scale;
+    let hv = null;
+    for (let i=0;i<this.rects.length;i++){ const r=this.rects[i]; if (r && e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom){ hv=i; break; } }
+    this._dx = dx; this._dy = dy; this._hv = hv;
+    if (!this._raf) { this._raf = requestAnimationFrame(() => { this._raf = null; this.setState({ dragDX:this._dx, dragDY:this._dy, hover:this._hv }); }); }
+  };
+
+  onUp = () => {
+    window.removeEventListener('pointermove', this.onMove);
+    window.removeEventListener('pointerup', this.onUp);
+    if (this._raf) { cancelAnimationFrame(this._raf); this._raf = null; }
+    this._dragging = false;
+    const from = this._from, to = this._hv;
+    if (from != null && to != null && to !== from) {
+      const tiles = this.state.tiles.slice();
+      const tmp = tiles[from]; tiles[from] = tiles[to]; tiles[to] = tmp;
+      const solved = tiles.every((h,i) => h===i);
+      this.setState({ tiles, dragCell:null, hover:null, dragDX:0, dragDY:0, moves:this.state.moves+1, solved });
+      if (solved) this.finishWin();
+    } else {
+      this.setState({ dragCell:null, hover:null, dragDX:0, dragDY:0 });
+    }
+    this._from = null; this._hv = null;
+  };
+
+  onSettings = () => this.setState({ settingsOpen:true });
+  onCloseSettings = () => this.setState({ settingsOpen:false });
+  stopProp = (e) => e.stopPropagation();
+  onToggleSound = () => this.setState(st => ({ sound:!st.sound }), () => this.persist());
+  onToggleMusic = () => this.setState(st => ({ music:!st.music }), () => this.persist());
+  onResetProgress = () => this.setState({ unlocked:1, completed:[], settingsOpen:false, screen:'home', result:null }, () => this.persist());
+
+  renderVals(){
+    const s = this.state;
+    const T = this.theme();
+    const grid = s.grid;
+    const pic = PICTURES[LEVELS[s.levelIdx].pic];
+
+    const rootStyle = { ...T.vars, position:'relative', height:'100%', boxSizing:'border-box', paddingTop:'52px', paddingBottom:'22px', background:'var(--bg)', color:'var(--ink)', fontFamily:"'Nunito',system-ui,sans-serif", display:'flex', flexDirection:'column', overflow:'hidden', WebkitFontSmoothing:'antialiased' };
+
+    // ----- level map nodes -----
+    let current = -1;
+    for (let i=0;i<s.unlocked;i++){ if (!s.completed.includes(i)) { current = i; break; } }
+    const levelNodes = LEVELS.map((lv, i) => {
+      const done = s.completed.includes(i);
+      const locked = i >= s.unlocked;
+      const isCurrent = i === current;
+      const lpic = PICTURES[lv.pic];
+      const cardStyle = {
+        display:'flex', alignItems:'center', gap:'12px', padding:'10px 12px', borderRadius:'20px',
+        background:'var(--surface)', border: isCurrent ? '2px solid #FF5CA8' : '1px solid var(--cardBorder)',
+        boxShadow: isCurrent ? '0 10px 24px rgba(255,92,168,.22)' : '0 5px 14px rgba(123,92,255,.08)',
+        opacity: locked ? 0.55 : 1, cursor: locked ? 'default' : 'pointer', transition:'transform .12s',
+      };
+      const nodeStyle = {
+        width:'38px', height:'38px', flexShrink:0, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+        fontFamily:'Fredoka,sans-serif', fontWeight:700, fontSize:'16px',
+        background: done ? '#3DD6C4' : isCurrent ? '#FF5CA8' : 'var(--surface2)',
+        color: done ? '#fff' : isCurrent ? '#fff' : 'var(--muted)',
+        border: (done || isCurrent) ? '0' : '2px solid var(--cardBorder)',
+        boxShadow: isCurrent ? '0 4px 10px rgba(255,92,168,.4)' : 'none',
+      };
+      const thumbStyle = {
+        width:'56px', height:'56px', flexShrink:0, borderRadius:'14px', backgroundImage:lpic.bg, backgroundSize:'cover',
+        boxShadow:'inset 0 0 0 1px rgba(0,0,0,.05)', filter: locked ? 'grayscale(.7)' : 'none', opacity: locked ? 0.5 : 1,
+      };
+      return {
+        num: i+1, done, locked, current: isCurrent,
+        metaText: lv.grid+'×'+lv.grid+' · '+sizeName(lv.grid)+(lv.mode==='timed'?' · Timed':''),
+        cardStyle, nodeStyle, thumbStyle,
+        onClick: locked ? undefined : () => this.openLevel(i),
+      };
+    });
+
+    // ----- tiles -----
+    const tiles = (s.tiles || []).map((home, cell) => {
+      const col = home % grid, row = Math.floor(home / grid);
+      const dragging = s.dragCell === cell;
+      const isHover = s.hover === cell && s.dragCell != null && s.dragCell !== cell;
+      const solved = s.solved;
+      const style = {
+        width:'100%', aspectRatio:'1/1', position:'relative',
+        borderRadius: solved ? '3px' : '12px',
+        backgroundImage: pic.bg,
+        backgroundSize: (grid*100)+'% '+(grid*100)+'%',
+        backgroundPosition: (grid>1?(col*100/(grid-1)):0)+'% '+(grid>1?(row*100/(grid-1)):0)+'%',
+        backgroundRepeat:'no-repeat',
+        boxShadow: dragging ? '0 18px 30px rgba(0,0,0,.30)' : (solved ? 'none' : 'inset 0 0 0 1.5px rgba(255,255,255,.45)'),
+        transform: dragging ? ('translate('+s.dragDX+'px,'+s.dragDY+'px) scale(1.06)') : 'translate(0,0) scale(1)',
+        transition: dragging ? 'none' : 'transform .2s cubic-bezier(.2,1.5,.4,1), border-radius .55s ease, box-shadow .2s',
+        zIndex: dragging ? 30 : 1,
+        cursor: solved ? 'default' : 'grab',
+        outline: isHover ? '4px solid #FFD93D' : 'none', outlineOffset:'-3px',
+        touchAction:'none', userSelect:'none', WebkitUserSelect:'none',
+      };
+      return { style, setRef:(el) => { this.slotRefs[cell] = el; }, onPointerDown:(e) => this.startDrag(cell, e) };
+    });
+
+    const boardStyle = {
+      display:'grid', gridTemplateColumns:'repeat('+grid+',1fr)',
+      gap: s.solved ? '0px' : '7px', padding: s.solved ? '0px' : '7px',
+      width:'100%', aspectRatio:'1/1', borderRadius:'22px',
+      background: s.solved ? 'transparent' : 'var(--board)',
+      boxShadow: s.solved ? 'none' : 'var(--boardShadow)',
+      transition:'gap .55s ease, padding .55s ease, background .55s, box-shadow .55s', touchAction:'none',
+    };
+
+    const peekStyle = { position:'absolute', inset:'0', borderRadius:'22px', backgroundImage:pic.bg, backgroundSize:'cover', boxShadow:'0 0 0 4px #FFD93D, 0 18px 36px rgba(0,0,0,.25)', display:'flex', alignItems:'flex-end', justifyContent:'center', padding:'12px', animation:'pop .2s ease' };
+
+    const isTimed = s.mode === 'timed';
+    const low = isTimed && s.seconds <= 10;
+    const timerStyle = { display:'flex', alignItems:'center', padding:'8px 16px', borderRadius:'999px', fontFamily:'Fredoka,sans-serif', fontWeight:700, fontSize:'15px', background: low?'#FF5CA8':'var(--surface)', color: low?'#fff':'var(--ink)', border:'1px solid var(--cardBorder)', animation: low?'pulse 1s ease infinite':'none' };
+    const elapsed = isTimed ? (TIMED[grid] - s.seconds) : s.seconds;
+
+    // ----- chips / toggles -----
+    const sc = SIZECOLOR[sizeName(grid)];
+    const chip = (bg) => ({ padding:'9px 18px', borderRadius:'999px', fontFamily:'Fredoka,sans-serif', fontWeight:600, fontSize:'14px', background:bg, color:'#fff', boxShadow:'0 4px 10px rgba(0,0,0,.08)' });
+    const track = (on) => ({ width:'52px', height:'30px', borderRadius:'99px', padding:'3px', boxSizing:'border-box', background: on ? '#3DD6C4' : 'var(--cardBorder)', display:'flex', alignItems:'center', cursor:'pointer', transition:'background .2s' });
+    const knob = (on) => ({ width:'24px', height:'24px', borderRadius:'50%', background:'#fff', boxShadow:'0 2px 4px rgba(0,0,0,.25)', transform: on ? 'translateX(22px)' : 'translateX(0)', transition:'transform .2s' });
+
+    const lvl = LEVELS[s.levelIdx];
+    const hasNext = s.levelIdx + 1 < LEVELS.length;
+
+    return {
+      isDark: T.dark, rootStyle,
+      isHome: s.screen==='home', isReady: s.screen==='ready', isPlay: s.screen==='play',
+      isWin: s.result==='win', isTimeUp: s.result==='timeup', settingsOpen: s.settingsOpen,
+      onSettings: this.onSettings, onCloseSettings: this.onCloseSettings, stopProp: this.stopProp,
+      progressText: s.completed.length + ' / ' + LEVELS.length + ' cleared',
+      levelNodes,
+      pic, readyNum: s.levelIdx+1,
+      picPreviewStyle: { width:'150px', height:'150px', borderRadius:'26px', backgroundImage:pic.bg, backgroundSize:'cover', boxShadow:'0 14px 28px rgba(123,92,255,.22), inset 0 0 0 1px rgba(0,0,0,.06)' },
+      sizeLabel: sizeName(grid), sizeChipStyle: chip(sc),
+      readyModeLabel: isTimed ? 'Timed' : 'Relaxed', modeChipStyle: chip(isTimed ? '#FF5CA8' : '#3DD6C4'),
+      tiles, boardStyle, boardSetRef:(el) => { this.boardRef = el; },
+      peeking: s.peeking, peekStyle,
+      moves: s.moves, timeStr: fmt(s.seconds), timerStyle, modeLabel: isTimed?'Timed':'Relaxed',
+      winTitle: hasNext ? 'You did it!' : 'All cleared!',
+      statsTime: fmt(elapsed), statsMoves: s.moves,
+      confetti: this.confetti || [], hasNext, allDone: !hasNext,
+      soundTrackStyle: track(s.sound), soundKnobStyle: knob(s.sound),
+      musicTrackStyle: track(s.music), musicKnobStyle: knob(s.music),
+      onToggleSound: this.onToggleSound, onToggleMusic: this.onToggleMusic, onResetProgress: this.onResetProgress,
+      onHome: this.goHome, onPlay: this.startGame, onPeek: this.peek, onRestart: this.startGame, onReplay: this.startGame, onNext: this.onNext,
+    };
+  }
+}
+</script>
+</body>
+</html>
