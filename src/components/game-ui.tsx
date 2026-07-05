@@ -1,6 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
-import { Pressable, Text, View, type ViewStyle } from "react-native";
+import {
+  Image,
+  Pressable,
+  Text,
+  View,
+  type ImageSourcePropType,
+  type ViewStyle
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,6 +24,7 @@ type GradientColors = readonly [string, string, ...string[]];
 export function GameButton({
   label,
   icon,
+  iconSource,
   gradient,
   depthColor,
   textColor = COLORS.surface,
@@ -27,6 +35,7 @@ export function GameButton({
 }: {
   label: string;
   icon?: string;
+  iconSource?: ImageSourcePropType;
   gradient?: GradientColors;
   depthColor: string;
   textColor?: string;
@@ -47,7 +56,19 @@ export function GameButton({
         height: "100%"
       }}
     >
-      {icon ? <Text style={{ fontSize: compact ? 19 : 23 }}>{icon}</Text> : null}
+      {iconSource ? (
+        <Image
+          source={iconSource}
+          resizeMode="cover"
+          style={{
+            width: compact ? 28 : 34,
+            height: compact ? 28 : 34,
+            borderRadius: compact ? 9 : 11
+          }}
+        />
+      ) : icon ? (
+        <Text style={{ fontSize: compact ? 19 : 23 }}>{icon}</Text>
+      ) : null}
       <Text
         style={{
           color: textColor,
@@ -92,10 +113,12 @@ export function GameButton({
 
 export function IconButton({
   glyph,
+  image,
   onPress,
   size = 44
 }: {
-  glyph: string;
+  glyph?: string;
+  image?: ImageSourcePropType;
   onPress: () => void;
   size?: number;
 }) {
@@ -114,10 +137,73 @@ export function IconButton({
         boxShadow: "0 4px 12px rgba(123,92,255,0.16)"
       })}
     >
-      <Text style={{ fontSize: size * 0.42, color: COLORS.ink, fontFamily: FONT.black }}>
-        {glyph}
-      </Text>
+      {image ? (
+        <Image
+          source={image}
+          resizeMode="cover"
+          style={{ width: size * 0.76, height: size * 0.76, borderRadius: size * 0.2 }}
+        />
+      ) : (
+        <Text style={{ fontSize: size * 0.42, color: COLORS.ink, fontFamily: FONT.black }}>
+          {glyph}
+        </Text>
+      )}
     </Pressable>
+  );
+}
+
+export function BadgeIcon({
+  source,
+  size = 46
+}: {
+  source: ImageSourcePropType;
+  size?: number;
+}) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.22,
+        overflow: "hidden",
+        boxShadow: "0 5px 12px rgba(42,33,64,0.16)"
+      }}
+    >
+      <Image source={source} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+    </View>
+  );
+}
+
+// A flat, on-brand coin — a gold disc with a soft inner ring and a star.
+// Drawn (not an image) so it reads clean rather than AI-generated.
+export function Coin({ size = 26 }: { size?: number }) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: COLORS.gold,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: Math.max(1.5, size * 0.07),
+        borderColor: COLORS.yellowDark
+      }}
+    >
+      <View
+        style={{
+          position: "absolute",
+          width: size * 0.66,
+          height: size * 0.66,
+          borderRadius: size,
+          borderWidth: Math.max(1, size * 0.05),
+          borderColor: "rgba(255,255,255,0.55)"
+        }}
+      />
+      <Text style={{ fontSize: size * 0.5, color: "#7A5300", fontFamily: FONT.black, marginTop: -1 }}>
+        ★
+      </Text>
+    </View>
   );
 }
 

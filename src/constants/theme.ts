@@ -1,39 +1,43 @@
 export const COLORS = {
-  bgTop: "#FFF3F9",
-  bgMid: "#FFEFE9",
-  bgBottom: "#FFEBD9",
-  ink: "#2A2140",
-  muted: "#9A8FB0",
+  bgTop: "#FFF8EA",
+  bgMid: "#F4FBFF",
+  bgBottom: "#FFF0F6",
+  ink: "#201A30",
+  muted: "#716985",
   surface: "#FFFFFF",
-  pink: "#FF4D97",
-  pinkDark: "#D62E7E",
-  pinkSoft: "#FFE3F0",
-  yellow: "#FFC131",
-  yellowDark: "#E8A400",
-  teal: "#2ED3BF",
-  tealDark: "#17A895",
-  tealSoft: "#DFF9F5",
-  purple: "#7B5CFF",
-  purpleDark: "#5B3FD6",
-  purpleSoft: "#EFEAFF",
-  orange: "#FF8A5C",
-  gold: "#FFB400"
+  pink: "#FF3D7F",
+  pinkDark: "#C92363",
+  pinkSoft: "#FFE0EC",
+  yellow: "#FFD43B",
+  yellowDark: "#DCA300",
+  teal: "#00C2B8",
+  tealDark: "#00958D",
+  tealSoft: "#DDF8F6",
+  purple: "#6757F5",
+  purpleDark: "#4636C8",
+  purpleSoft: "#E9E7FF",
+  orange: "#FF7A3D",
+  gold: "#F9B900",
+  lime: "#A8E84B",
+  stroke: "#201A30"
 } as const;
 
 export const GRADIENTS = {
-  screen: ["#FFF3F9", "#FFEFE9", "#FFE9D6"] as const,
-  pink: ["#FF74B4", "#FF3D8E"] as const,
-  teal: ["#43E4CF", "#1FBBA6"] as const,
-  purple: ["#957DFF", "#6A48F5"] as const,
-  gold: ["#FFD34D", "#FFAD05"] as const,
-  card: ["#FFFFFF", "#FFF7FB"] as const
+  screen: ["#FFF8EA", "#F4FBFF", "#FFF0F6"] as const,
+  pink: ["#FF5A94", "#FF2D75"] as const,
+  teal: ["#16D8CC", "#00AFA6"] as const,
+  purple: ["#7A6BFF", "#5748DE"] as const,
+  gold: ["#FFE06A", "#F8AF00"] as const,
+  card: ["#FFFFFF", "#FFFDF8"] as const
 };
 
+// Fredoka only ships up to 700 (Bold), so `black` reuses Bold — still nicely
+// chunky for headings without a heavier weight.
 export const FONT = {
-  medium: "Baloo2_500Medium",
-  semi: "Baloo2_600SemiBold",
-  bold: "Baloo2_700Bold",
-  black: "Baloo2_800ExtraBold"
+  medium: "Fredoka_500Medium",
+  semi: "Fredoka_600SemiBold",
+  bold: "Fredoka_700Bold",
+  black: "Fredoka_700Bold"
 } as const;
 
 // 1-3 stars based on how efficiently the level was cleared.

@@ -5,7 +5,7 @@ import { StarRow, PulseRing } from "@/components/game-ui";
 import { LEVELS, sizeName } from "@/constants/levels";
 import { COLORS, FONT } from "@/constants/theme";
 
-const ROW_HEIGHT = 112;
+export const LEVEL_PATH_ROW_HEIGHT = 112;
 const NODE = 76;
 const CURRENT_NODE = 92;
 const WAVE = [0, 1, 0.2, -1, -0.3, 1, 0, -1, 0.4, 0.9];
@@ -15,7 +15,7 @@ function nodeCenter(index: number, width: number) {
   const wave = WAVE[index % WAVE.length];
   return {
     x: width / 2 + wave * amplitude,
-    y: index * ROW_HEIGHT + ROW_HEIGHT / 2
+    y: index * LEVEL_PATH_ROW_HEIGHT + LEVEL_PATH_ROW_HEIGHT / 2
   };
 }
 
@@ -32,7 +32,7 @@ export function LevelPath({
   stars: Record<number, number>;
   onSelect: (index: number) => void;
 }) {
-  const height = LEVELS.length * ROW_HEIGHT + 30;
+  const height = LEVELS.length * LEVEL_PATH_ROW_HEIGHT + 30;
 
   return (
     <View style={{ width, height }}>

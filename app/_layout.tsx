@@ -1,10 +1,9 @@
 import {
-  Baloo2_500Medium,
-  Baloo2_600SemiBold,
-  Baloo2_700Bold,
-  Baloo2_800ExtraBold,
+  Fredoka_500Medium,
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
   useFonts
-} from "@expo-google-fonts/baloo-2";
+} from "@expo-google-fonts/fredoka";
 import { Stack } from "expo-router/stack";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
@@ -12,14 +11,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
-    Baloo2_500Medium,
-    Baloo2_600SemiBold,
-    Baloo2_700Bold,
-    Baloo2_800ExtraBold
+    Fredoka_500Medium,
+    Fredoka_600SemiBold,
+    Fredoka_700Bold
   });
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: "#FFF3F9" }} />;
+    return <View style={{ flex: 1, backgroundColor: "#FFF8EA" }} />;
   }
 
   return (
@@ -28,7 +26,7 @@ export default function Layout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "#FFF3F9" }
+          contentStyle: { backgroundColor: "#FFF8EA" }
         }}
       />
     </GestureHandlerRootView>
