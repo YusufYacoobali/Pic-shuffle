@@ -6,6 +6,8 @@ import { UI_IMAGES } from "@/constants/assets";
 import { getLevel, PACKS, TOTAL_LEVELS } from "@/constants/packs";
 import { COLORS, FONT, GRADIENTS } from "@/constants/theme";
 
+type ReviewPromptStage = "ask" | "review";
+
 export function AchievementsModal({
   totalStars,
   clearedLevels,
@@ -168,7 +170,7 @@ export function SettingsSheet({
           />
           <SettingRow
             image={UI_IMAGES.settingsReminders}
-            label="Reminders"
+            label="Daily reminders"
             value={notifications}
             onValueChange={onNotificationsChange}
           />
@@ -195,6 +197,76 @@ export function SettingsSheet({
           <Text style={{ textAlign: "center", color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
             Pic Shuffle v1.0
           </Text>
+        </Pressable>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+export function ReviewPromptModal({
+  stage,
+  onEnjoying,
+  onRateNow,
+  onClose
+}: {
+  stage: ReviewPromptStage;
+  onEnjoying: () => void;
+  onRateNow: () => void;
+  onClose: () => void;
+}) {
+  const asking = stage === "ask";
+
+  return (
+    <Pressable
+      onPress={onClose}
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: "rgba(42,33,64,0.38)",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 22
+      }}
+    >
+      <Animated.View entering={ZoomIn.springify().damping(16)} style={{ width: "100%", maxWidth: 330 }}>
+        <Pressable
+          onPress={(event) => event.stopPropagation()}
+          style={{
+            backgroundColor: COLORS.surface,
+            borderRadius: 28,
+            padding: 22,
+            gap: 14,
+            boxShadow: "0 22px 48px rgba(42,33,64,0.28)"
+          }}
+        >
+          <View style={{ alignItems: "center", gap: 8 }}>
+            <BadgeIcon source={UI_IMAGES.achievements} size={64} />
+            <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 25, textAlign: "center" }}>
+              {asking ? "Enjoying Pic Shuffle?" : "Rate Pic Shuffle?"}
+            </Text>
+            <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 14, textAlign: "center" }}>
+              {asking
+                ? "Your feedback helps shape the next packs."
+                : "A quick rating really helps the game grow."}
+            </Text>
+          </View>
+
+          <GameButton
+            label={asking ? "Yes!" : "Rate now"}
+            gradient={GRADIENTS.pink}
+            depthColor={COLORS.pinkDark}
+            onPress={asking ? onEnjoying : onRateNow}
+            compact
+          />
+
+          <Pressable onPress={onClose} hitSlop={8} style={{ alignItems: "center", paddingVertical: 2 }}>
+            <Text style={{ color: COLORS.muted, fontFamily: FONT.bold, fontSize: 15 }}>
+              {asking ? "Not yet" : "Maybe later"}
+            </Text>
+          </Pressable>
         </Pressable>
       </Animated.View>
     </Pressable>

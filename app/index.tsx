@@ -7,7 +7,7 @@ import { type ImageSourcePropType, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackgroundBlobs } from "@/components/game-ui";
-import { AchievementsModal, SettingsSheet } from "@/components/overlays/game-overlays";
+import { AchievementsModal, ReviewPromptModal, SettingsSheet } from "@/components/overlays/game-overlays";
 import { LevelClearedOverlay, TimeUpOverlay } from "@/components/overlays/level-cleared";
 import { HomeScreen } from "@/components/screens/home-screen";
 import { PackScreen } from "@/components/screens/pack-screen";
@@ -34,8 +34,10 @@ import {
 } from "@/lib/progress";
 import {
   cancelReminders,
-  maybeRequestNativeReview,
-  scheduleEveryOtherDayReminder
+  markReviewPromptShown,
+  requestReviewOrOpenStoreSafely,
+  scheduleDailyReminder,
+  shouldShowReviewPrompt
 } from "@/services/native-cadence";
 import {
   cachePuzzleImage,
@@ -58,6 +60,7 @@ const UNLOCK_ALL_FOR_TESTING = false;
 type Screen = "home" | "pack" | "ready" | "photoSetup" | "play";
 type Result = null | "win" | "timeup";
 type Mode = "level" | "photo";
+type ReviewPromptStage = null | "ask" | "review";
 
 export default function PicShuffleScreen() {
   const { width } = useWindowDimensions();
@@ -75,6 +78,7 @@ export default function PicShuffleScreen() {
   const [notifications, setNotifications] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const [reviewPrompt, setReviewPrompt] = useState<ReviewPromptStage>(null);
 
   const [tiles, setTiles] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
@@ -149,12 +153,12 @@ export default function PicShuffleScreen() {
         if (typeof saved.music === "boolean") setMusic(saved.music);
         if (typeof saved.notifications === "boolean") {
           setNotifications(saved.notifications);
-          if (saved.notifications) scheduleEveryOtherDayReminder().catch(() => {});
+          if (saved.notifications) scheduleDailyReminder().catch(() => {});
         } else {
-          scheduleEveryOtherDayReminder().catch(() => {});
+          scheduleDailyReminder().catch(() => {});
         }
       } else {
-        scheduleEveryOtherDayReminder().catch(() => {});
+        scheduleDailyReminder().catch(() => {});
       }
       hydrated.current = true;
     }
@@ -219,6 +223,26 @@ export default function PicShuffleScreen() {
       cancelled = true;
     };
   }, [level.image, mode, rememberCachedImage]);
+
+  useEffect(() => {
+    if (result !== "win" || mode !== "level" || reviewPrompt) return undefined;
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      shouldShowReviewPrompt(progress.clearedLevels)
+        .then(async (show) => {
+          if (!show || cancelled) return;
+          await markReviewPromptShown();
+          if (!cancelled) setReviewPrompt("ask");
+        })
+        .catch(() => {});
+    }, 1600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [mode, progress.clearedLevels, result, reviewPrompt]);
 
   function openPack(index: number) {
     setPackIndex(index);
@@ -357,7 +381,6 @@ export default function PicShuffleScreen() {
     setTimeout(() => setSolved(true), 420);
     setTimeout(() => {
       setResult("win");
-      maybeRequestNativeReview().catch(() => {});
     }, 980);
   }
 
@@ -375,7 +398,7 @@ export default function PicShuffleScreen() {
   async function toggleNotifications(value: boolean) {
     setNotifications(value);
     if (value) {
-      const ok = await scheduleEveryOtherDayReminder().catch(() => false);
+      const ok = await scheduleDailyReminder().catch(() => false);
       setNotifications(ok);
     } else {
       await cancelReminders().catch(() => {});
@@ -532,6 +555,18 @@ export default function PicShuffleScreen() {
               setScreen("home");
             }}
             onClose={() => setSettingsOpen(false)}
+          />
+        )}
+
+        {reviewPrompt && (
+          <ReviewPromptModal
+            stage={reviewPrompt}
+            onEnjoying={() => setReviewPrompt("review")}
+            onRateNow={() => {
+              requestReviewOrOpenStoreSafely().catch(() => {});
+              setReviewPrompt(null);
+            }}
+            onClose={() => setReviewPrompt(null)}
           />
         )}
       </SafeAreaView>

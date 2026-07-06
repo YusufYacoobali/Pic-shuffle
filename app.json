@@ -14,10 +14,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.picshuffle.game"
+      "bundleIdentifier": "com.yacoobali.puzzle"
     },
     "android": {
-      "package": "com.picshuffle.game",
+      "package": "com.yacoobali.puzzle",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.yacoobali.puzzle",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFF4FA"
