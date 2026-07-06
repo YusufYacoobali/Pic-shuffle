@@ -52,6 +52,10 @@ export async function cancelReminders() {
 }
 
 export async function maybeRequestNativeReview() {
+  // Expo Go/dev builds can behave badly when a native review prompt is fired
+  // during a game transition. Keep review cadence for production builds only.
+  if (__DEV__) return false;
+
   const available = await StoreReview.isAvailableAsync();
   if (!available) return false;
 

@@ -241,7 +241,7 @@ export default function PicShuffleScreen() {
   }
 
   // (Re)start the current puzzle - a level from the ready screen, or a photo
-  // via Reset/Shuffle/Replay. Reads the active config, so it serves both modes.
+  // via Reset/Shuffle. Reads the active config, so it serves both modes.
   function startGame() {
     setTiles(makeTiles(activeGrid));
     setMoves(0);
@@ -497,7 +497,6 @@ export default function PicShuffleScreen() {
                   : "Back to map"
             }
             onPrimary={mode === "photo" ? pickPhoto : globalIndex + 1 < TOTAL_LEVELS ? nextLevel : goHome}
-            onReplay={startGame}
           />
         )}
 

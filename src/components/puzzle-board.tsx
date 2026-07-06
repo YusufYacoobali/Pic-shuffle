@@ -427,6 +427,7 @@ export function PuzzleBoard({
         }}
       >
         {ready &&
+          !solved &&
           tiles.map((home, cell) => {
             const groupIndex = groupByCell[cell];
             const link: TileLink = {

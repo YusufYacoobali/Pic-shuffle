@@ -222,10 +222,30 @@ function PackCard({
             borderRadius: 16,
             backgroundColor: pack.accentSoft,
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
+            opacity: locked ? 0.82 : 1
           }}
         >
-          <Text style={{ fontSize: 26 }}>{locked ? "LOCK" : pack.emoji}</Text>
+          <Text style={{ fontSize: 26, opacity: locked ? 0.34 : 1 }}>{pack.emoji}</Text>
+          {locked && (
+            <View
+              style={{
+                position: "absolute",
+                right: -4,
+                bottom: -4,
+                width: 24,
+                height: 24,
+                borderRadius: 12,
+                backgroundColor: COLORS.ink,
+                borderWidth: 2,
+                borderColor: COLORS.surface,
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <Text style={{ color: COLORS.surface, fontSize: 12 }}>{"\u{1F512}"}</Text>
+            </View>
+          )}
         </View>
 
         <View style={{ flex: 1, gap: 4 }}>

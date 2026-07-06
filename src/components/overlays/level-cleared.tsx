@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -98,8 +99,7 @@ export function LevelClearedOverlay({
   coinsAwarded,
   coinBalanceBefore,
   primaryLabel,
-  onPrimary,
-  onReplay
+  onPrimary
 }: {
   title: string;
   subtitle: string;
@@ -108,30 +108,33 @@ export function LevelClearedOverlay({
   coinBalanceBefore: number;
   primaryLabel: string;
   onPrimary: () => void;
-  onReplay: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+  const topOffset = Math.max(insets.top + 12, 64);
+  const bottomOffset = Math.max(insets.bottom + 12, 24);
+
   return (
     <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }} pointerEvents="box-none">
       <Confetti />
 
       <LinearGradient
-        colors={["rgba(255,248,234,0.96)", "rgba(255,248,234,0.52)", "rgba(255,248,234,0)"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 330 }}
+        colors={["rgba(255,248,234,1)", "rgba(255,248,234,0.98)", "rgba(255,248,234,0)"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 350 }}
         pointerEvents="none"
       />
 
       <View
-        style={{ position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", paddingTop: 24, gap: 12 }}
+        style={{ position: "absolute", top: topOffset, left: 0, right: 0, alignItems: "center", gap: 7 }}
         pointerEvents="none"
       >
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
           {[0, 1, 2].map((slot) => (
             <PopStar key={slot} index={slot} earned={slot < stars} />
           ))}
         </View>
         <Animated.Text
           entering={FadeInUp.delay(120).duration(260)}
-          style={{ color: COLORS.ink, fontSize: 34, fontFamily: FONT.black, textAlign: "center", letterSpacing: 0 }}
+          style={{ color: COLORS.ink, fontSize: 32, fontFamily: FONT.black, textAlign: "center", letterSpacing: 0 }}
         >
           {title}
         </Animated.Text>
@@ -148,7 +151,7 @@ export function LevelClearedOverlay({
 
       <Animated.View
         entering={FadeInUp.delay(360).springify().damping(16)}
-        style={{ position: "absolute", left: 18, right: 18, bottom: 22, gap: 10 }}
+        style={{ position: "absolute", left: 18, right: 18, bottom: bottomOffset }}
       >
         <GameButton
           label={primaryLabel}
@@ -157,9 +160,6 @@ export function LevelClearedOverlay({
           onPress={onPrimary}
           style={{ alignSelf: "stretch" }}
         />
-        <Pressable onPress={onReplay} hitSlop={8} style={{ alignItems: "center", paddingVertical: 4 }}>
-          <Text style={{ color: COLORS.muted, fontFamily: FONT.bold, fontSize: 15 }}>Replay</Text>
-        </Pressable>
       </Animated.View>
     </View>
   );

@@ -122,6 +122,8 @@ export function IconButton({
   onPress: () => void;
   size?: number;
 }) {
+  const imageRadius = Math.max(12, size * 0.28);
+
   return (
     <Pressable
       onPress={onPress}
@@ -129,19 +131,20 @@ export function IconButton({
       style={({ pressed }) => ({
         width: size,
         height: size,
-        borderRadius: size / 2,
-        backgroundColor: COLORS.surface,
+        borderRadius: image ? imageRadius : size / 2,
+        backgroundColor: image ? "transparent" : COLORS.surface,
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
         transform: [{ scale: pressed ? 0.9 : 1 }],
-        boxShadow: "0 4px 12px rgba(123,92,255,0.16)"
+        boxShadow: image ? "none" : "0 4px 12px rgba(123,92,255,0.16)"
       })}
     >
       {image ? (
         <Image
           source={image}
           resizeMode="cover"
-          style={{ width: size * 0.76, height: size * 0.76, borderRadius: size * 0.2 }}
+          style={{ width: size, height: size, borderRadius: imageRadius }}
         />
       ) : (
         <Text style={{ fontSize: size * 0.42, color: COLORS.ink, fontFamily: FONT.black }}>
@@ -311,7 +314,7 @@ export function PopStar({ index, earned }: { index: number; earned: boolean }) {
     <Animated.View style={style}>
       <Text
         style={{
-          fontSize: index === 1 ? 52 : 40,
+          fontSize: index === 1 ? 42 : 34,
           opacity: earned ? 1 : 0.16,
           marginTop: index === 1 ? -10 : 0
         }}
