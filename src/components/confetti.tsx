@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withRepeat,
   withTiming
 } from "react-native-reanimated";
 
@@ -29,11 +28,7 @@ function ConfettiPiece({ piece, screenHeight }: { piece: Piece; screenHeight: nu
   useEffect(() => {
     progress.value = withDelay(
       piece.delay,
-      withRepeat(
-        withTiming(1, { duration: piece.duration, easing: Easing.linear }),
-        -1,
-        false
-      )
+      withTiming(1, { duration: piece.duration, easing: Easing.out(Easing.cubic) })
     );
   }, [piece, progress]);
 
@@ -68,15 +63,15 @@ function ConfettiPiece({ piece, screenHeight }: { piece: Piece; screenHeight: nu
   );
 }
 
-export function Confetti({ count = 28 }: { count?: number }) {
+export function Confetti({ count = 22 }: { count?: number }) {
   const { height } = useWindowDimensions();
 
   const pieces = useMemo<Piece[]>(
     () =>
       Array.from({ length: count }, (_, index) => ({
         left: Math.random() * 100,
-        delay: Math.random() * 1800,
-        duration: 2400 + Math.random() * 1600,
+        delay: Math.random() * 500,
+        duration: 1500 + Math.random() * 900,
         color: CONFETTI_COLORS[index % CONFETTI_COLORS.length],
         width: 7 + Math.random() * 7,
         height: 10 + Math.random() * 8,

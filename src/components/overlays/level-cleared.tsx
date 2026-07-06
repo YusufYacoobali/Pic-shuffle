@@ -10,7 +10,6 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
-  ZoomIn
 } from "react-native-reanimated";
 
 import { Confetti } from "@/components/confetti";
@@ -21,7 +20,6 @@ function easeOut(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-// Coin balance HUD that counts up by `award` shortly after mount, with a pop.
 function CoinReward({ award, balanceBefore }: { award: number; balanceBefore: number }) {
   const [display, setDisplay] = useState(balanceBefore);
   const pop = useSharedValue(1);
@@ -30,9 +28,9 @@ function CoinReward({ award, balanceBefore }: { award: number; balanceBefore: nu
 
   useEffect(() => {
     const startDelay = 520;
-    const duration = 850;
+    const duration = 650;
+    let interval: ReturnType<typeof setInterval> | undefined;
     const timer = setTimeout(() => {
-      // "+N" floats up and fades
       plusOpacity.value = withSequence(
         withTiming(1, { duration: 160 }),
         withDelay(360, withTiming(0, { duration: 320 }))
@@ -43,13 +41,16 @@ function CoinReward({ award, balanceBefore }: { award: number; balanceBefore: nu
         withSpring(1, { damping: 12, stiffness: 260 })
       );
       const startTime = Date.now();
-      const id = setInterval(() => {
+      interval = setInterval(() => {
         const p = Math.min(1, (Date.now() - startTime) / duration);
         setDisplay(Math.round(balanceBefore + award * easeOut(p)));
-        if (p >= 1) clearInterval(id);
-      }, 24);
+        if (p >= 1 && interval) clearInterval(interval);
+      }, 40);
     }, startDelay);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (interval) clearInterval(interval);
+    };
   }, [award, balanceBefore, plusOpacity, plusY, pop]);
 
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
@@ -71,24 +72,19 @@ function CoinReward({ award, balanceBefore }: { award: number; balanceBefore: nu
             paddingVertical: 7,
             borderRadius: 999,
             backgroundColor: COLORS.surface,
-            boxShadow: "0 8px 20px rgba(249,185,0,0.35)"
+            borderWidth: 2,
+            borderColor: COLORS.stroke,
+            boxShadow: "0 7px 0 rgba(32,26,48,0.16)"
           },
           pillStyle
         ]}
       >
         <Coin size={26} />
-        <Text
-          style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 20, fontVariant: ["tabular-nums"] }}
-        >
+        <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 20, fontVariant: ["tabular-nums"] }}>
           {display}
         </Text>
       </Animated.View>
-      <Animated.Text
-        style={[
-          { color: COLORS.yellowDark, fontFamily: FONT.black, fontSize: 18, marginTop: 2 },
-          plusStyle
-        ]}
-      >
+      <Animated.Text style={[{ color: COLORS.yellowDark, fontFamily: FONT.black, fontSize: 18, marginTop: 2 }, plusStyle]}>
         {`+${award}`}
       </Animated.Text>
     </View>
@@ -118,29 +114,24 @@ export function LevelClearedOverlay({
     <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }} pointerEvents="box-none">
       <Confetti />
 
-      {/* Soft scrim behind the celebration text so it stays legible over any
-          picture, without hiding the finished puzzle behind a dark popup. */}
       <LinearGradient
-        colors={["rgba(255,248,234,0.94)", "rgba(255,248,234,0)"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 320 }}
+        colors={["rgba(255,248,234,0.96)", "rgba(255,248,234,0.52)", "rgba(255,248,234,0)"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 330 }}
         pointerEvents="none"
       />
 
-      <View style={{ position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", paddingTop: 24, gap: 12 }} pointerEvents="none">
+      <View
+        style={{ position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", paddingTop: 24, gap: 12 }}
+        pointerEvents="none"
+      >
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
           {[0, 1, 2].map((slot) => (
             <PopStar key={slot} index={slot} earned={slot < stars} />
           ))}
         </View>
         <Animated.Text
-          entering={ZoomIn.springify().damping(13).delay(120)}
-          style={{
-            color: COLORS.ink,
-            fontSize: 34,
-            fontFamily: FONT.black,
-            textAlign: "center",
-            letterSpacing: 0.3
-          }}
+          entering={FadeInUp.delay(120).duration(260)}
+          style={{ color: COLORS.ink, fontSize: 34, fontFamily: FONT.black, textAlign: "center", letterSpacing: 0 }}
         >
           {title}
         </Animated.Text>
@@ -204,10 +195,10 @@ export function TimeUpOverlay({ onRetry, onMap }: { onRetry: () => void; onMap: 
           boxShadow: "0 20px 44px rgba(32,26,48,0.3)"
         }}
       >
-        <Text style={{ fontSize: 34 }}>⏰</Text>
+        <Text style={{ color: COLORS.pink, fontFamily: FONT.black, fontSize: 13 }}>TIME</Text>
         <Text style={{ color: COLORS.ink, fontSize: 26, fontFamily: FONT.black }}>Time&apos;s up!</Text>
         <Text style={{ color: COLORS.muted, fontSize: 14, fontFamily: FONT.semi, textAlign: "center", marginTop: -6 }}>
-          So close — give it another go?
+          So close - give it another go?
         </Text>
         <GameButton
           label="Try again"

@@ -1,14 +1,25 @@
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { StarRow, PulseRing } from "@/components/game-ui";
-import { LEVELS, sizeName } from "@/constants/levels";
+import { PulseRing, StarRow } from "@/components/game-ui";
+import type { LevelKind } from "@/constants/packs";
 import { COLORS, FONT } from "@/constants/theme";
 
 export const LEVEL_PATH_ROW_HEIGHT = 112;
 const NODE = 76;
 const CURRENT_NODE = 92;
 const WAVE = [0, 1, 0.2, -1, -0.3, 1, 0, -1, 0.4, 0.9];
+
+export type PathNodeState = "locked" | "open" | "done" | "current";
+
+export type PathNode = {
+  key: number;
+  label: string;
+  state: PathNodeState;
+  stars: number;
+  kind: LevelKind;
+  timed: boolean;
+};
 
 function nodeCenter(index: number, width: number) {
   const amplitude = Math.min(96, width / 2 - CURRENT_NODE / 2 - 10);
@@ -19,31 +30,34 @@ function nodeCenter(index: number, width: number) {
   };
 }
 
+function connectorReached(previous: PathNode, current: PathNode) {
+  return previous.state === "done" || current.state === "done" || current.state === "current";
+}
+
 export function LevelPath({
   width,
-  unlocked,
-  currentIndex,
-  stars,
+  nodes,
+  accent = COLORS.pink,
   onSelect
 }: {
   width: number;
-  unlocked: number;
-  currentIndex: number;
-  stars: Record<number, number>;
-  onSelect: (index: number) => void;
+  nodes: PathNode[];
+  accent?: string;
+  onSelect: (key: number) => void;
 }) {
-  const height = LEVELS.length * LEVEL_PATH_ROW_HEIGHT + 30;
+  const height = nodes.length * LEVEL_PATH_ROW_HEIGHT + 30;
 
   return (
     <View style={{ width, height }}>
-      {LEVELS.map((_, index) => {
+      {nodes.map((node, index) => {
         if (index === 0) return null;
+        const previous = nodes[index - 1];
         const from = nodeCenter(index - 1, width);
         const to = nodeCenter(index, width);
-        const reached = index < unlocked;
+        const reached = connectorReached(previous, node);
         return [0.22, 0.5, 0.78].map((t) => (
           <View
-            key={`dot-${index}-${t}`}
+            key={`dot-${node.key}-${t}`}
             style={{
               position: "absolute",
               left: from.x + (to.x - from.x) * t - 5,
@@ -58,17 +72,20 @@ export function LevelPath({
         ));
       })}
 
-      {LEVELS.map((level, index) => {
-        const done = (stars[index] ?? 0) > 0;
-        const locked = index >= unlocked;
-        const current = index === currentIndex && !locked;
-        const size = current ? CURRENT_NODE : NODE;
+      {nodes.map((node, index) => {
+        const locked = node.state === "locked";
+        const done = node.state === "done";
+        const current = node.state === "current";
+        const boss = node.kind === "boss";
+        const size = current || boss ? CURRENT_NODE : NODE;
         const center = nodeCenter(index, width);
 
         return (
           <Animated.View
-            key={level.id}
-            entering={FadeInDown.delay(60 + index * 45).springify().damping(16)}
+            key={node.key}
+            entering={FadeInDown.delay(Math.min(60 + index * 45, 900))
+              .springify()
+              .damping(16)}
             style={{
               position: "absolute",
               left: center.x - size / 2,
@@ -78,10 +95,10 @@ export function LevelPath({
             }}
           >
             <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-              {current && <PulseRing size={size} color={COLORS.pink} />}
+              {current && <PulseRing size={size} color={accent} />}
               <Pressable
                 disabled={locked}
-                onPress={() => onSelect(index)}
+                onPress={() => onSelect(node.key)}
                 style={({ pressed }) => ({
                   width: size,
                   height: size,
@@ -91,21 +108,25 @@ export function LevelPath({
                   backgroundColor: locked
                     ? "rgba(255,255,255,0.72)"
                     : current
-                      ? COLORS.pink
+                      ? accent
                       : done
                         ? COLORS.teal
-                        : COLORS.surface,
+                        : boss
+                          ? COLORS.gold
+                          : COLORS.surface,
                   borderWidth: 4,
                   borderColor: locked
                     ? "rgba(42,33,64,0.08)"
                     : current
-                      ? "#FFD3E7"
+                      ? "rgba(255,255,255,0.6)"
                       : done
                         ? "#BDF3EB"
-                        : COLORS.pinkSoft,
+                        : boss
+                          ? "#FFE28A"
+                          : COLORS.pinkSoft,
                   transform: [{ scale: pressed ? 0.92 : 1 }],
                   boxShadow: current
-                    ? "0 8px 20px rgba(255,77,151,0.45)"
+                    ? "0 8px 20px rgba(255,61,127,0.4)"
                     : done
                       ? "0 6px 14px rgba(46,211,191,0.35)"
                       : locked
@@ -114,22 +135,47 @@ export function LevelPath({
                 })}
               >
                 {locked ? (
-                  <Text style={{ fontSize: size * 0.34 }}>{"🔒"}</Text>
+                  <Text style={{ fontSize: size * 0.34 }}>{"\u{1F512}"}</Text>
                 ) : (
                   <Text
                     style={{
                       fontSize: size * 0.4,
                       fontFamily: FONT.black,
-                      color: current || done ? COLORS.surface : COLORS.ink
+                      color: current || done || boss ? COLORS.surface : COLORS.ink
                     }}
                   >
-                    {level.id}
+                    {node.label}
                   </Text>
                 )}
               </Pressable>
+
+              {boss && !locked && (
+                <View style={{ position: "absolute", top: -13 }}>
+                  <Text style={{ fontSize: 20 }}>{"\u{1F451}"}</Text>
+                </View>
+              )}
+
+              {node.kind === "challenge" && !locked && !done && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -4,
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: COLORS.purple,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 6px rgba(70,54,200,0.4)"
+                  }}
+                >
+                  <Text style={{ fontSize: 12 }}>{"\u26A1"}</Text>
+                </View>
+              )}
             </View>
 
-            {done && !current && <StarRow earned={stars[index] ?? 0} size={13} />}
+            {done && !current && <StarRow earned={node.stars} size={13} />}
 
             {current && (
               <View
@@ -143,14 +189,14 @@ export function LevelPath({
                 }}
               >
                 <Text style={{ fontFamily: FONT.black, fontSize: 13, color: "#5A4A00" }}>
-                  {level.mode === "timed" ? "⏱ PLAY" : "PLAY"}
+                  {boss ? "\u{1F451} BOSS" : node.timed ? "\u23F1 PLAY" : "PLAY"}
                 </Text>
               </View>
             )}
 
             {!current && !locked && !done && (
               <Text style={{ marginTop: 3, fontFamily: FONT.semi, fontSize: 11, color: COLORS.muted }}>
-                {sizeName(level.grid)}
+                {boss ? "Boss" : node.kind === "challenge" ? "Challenge" : node.timed ? "Timed" : ""}
               </Text>
             )}
           </Animated.View>

@@ -159,8 +159,8 @@ export function PuzzleBoard({
 }: PuzzleBoardProps) {
   const total = grid * grid;
   const ready = tiles.length === total;
-  const gap = solved ? 0 : 6;
-  const padding = solved ? 0 : 6;
+  const gap = 6;
+  const padding = 6;
   const tileW = (boardWidth - padding * 2 - gap * (grid - 1)) / grid;
   const tileH = (boardHeight - padding * 2 - gap * (grid - 1)) / grid;
   const pitchX = tileW + gap;
@@ -422,10 +422,8 @@ export function PuzzleBoard({
           height: boardHeight,
           position: "relative",
           borderRadius: 22,
-          backgroundColor: solved ? "transparent" : SURFACE,
-          boxShadow: solved
-            ? "none"
-            : "0 12px 26px rgba(123,92,255,0.16), inset 0 0 0 1px rgba(0,0,0,0.04)"
+          backgroundColor: SURFACE,
+          boxShadow: "0 12px 26px rgba(123,92,255,0.16), inset 0 0 0 1px rgba(0,0,0,0.04)"
         }}
       >
         {ready &&
@@ -454,6 +452,8 @@ export function PuzzleBoard({
               />
             );
           })}
+
+        {solved && <CompletedImageReveal image={image} boardWidth={boardWidth} boardHeight={boardHeight} />}
 
         {drag &&
           dragInfo &&
@@ -539,6 +539,50 @@ export function PuzzleBoard({
         )}
       </View>
     </GestureDetector>
+  );
+}
+
+function CompletedImageReveal({
+  image,
+  boardWidth,
+  boardHeight
+}: {
+  image: ImageSourcePropType;
+  boardWidth: number;
+  boardHeight: number;
+}) {
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.985);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 260 });
+    scale.value = withSpring(1, { damping: 18, stiffness: 180, mass: 0.9 });
+  }, [opacity, scale]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        {
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: boardWidth,
+          height: boardHeight,
+          borderRadius: 22,
+          overflow: "hidden",
+          zIndex: 8
+        },
+        style
+      ]}
+    >
+      <Image source={image} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+    </Animated.View>
   );
 }
 

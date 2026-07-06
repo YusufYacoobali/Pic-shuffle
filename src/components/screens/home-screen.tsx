@@ -1,58 +1,52 @@
-import { useRef } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+﻿import { Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
 import { BadgeIcon, Coin, IconButton } from "@/components/game-ui";
-import { LEVEL_PATH_ROW_HEIGHT, LevelPath } from "@/components/level-path";
 import { UI_IMAGES } from "@/constants/assets";
-import { LEVELS } from "@/constants/levels";
+import { getLevel, PACK_SIZE, PACKS, TOTAL_LEVELS, type PackDef } from "@/constants/packs";
 import { COLORS, FONT } from "@/constants/theme";
-import type { StarMap } from "@/lib/progress";
+import {
+  isPackUnlocked,
+  packClearedCount,
+  packStars,
+  type StarMap
+} from "@/lib/progress";
 
 type HomeScreenProps = {
-  width: number;
   totalStars: number;
   coins: number;
   clearedLevels: number;
   perfectLevels: number;
-  currentPlayable: number;
-  effectiveUnlocked: number;
+  currentGlobal: number;
+  unlockAll: boolean;
   stars: StarMap;
   onPickPhoto: () => void;
-  onOpenLevel: (index: number) => void;
+  onOpenPack: (packIndex: number) => void;
+  onOpenLevel: (global: number) => void;
   onOpenAchievements: () => void;
   onOpenSettings: () => void;
 };
 
 export function HomeScreen({
-  width,
   totalStars,
   coins,
   clearedLevels,
   perfectLevels,
-  currentPlayable,
-  effectiveUnlocked,
+  currentGlobal,
+  unlockAll,
   stars,
   onPickPhoto,
+  onOpenPack,
   onOpenLevel,
   onOpenAchievements,
   onOpenSettings
 }: HomeScreenProps) {
-  const scrollRef = useRef<ScrollView>(null);
-  const pathY = useRef(0);
-  const currentLevel = LEVELS[currentPlayable];
-
-  function jumpToCurrent() {
-    scrollRef.current?.scrollTo({
-      y: Math.max(0, pathY.current + currentPlayable * LEVEL_PATH_ROW_HEIGHT - 40),
-      animated: true
-    });
-  }
+  const currentLevel = getLevel(currentGlobal);
+  const currentPack = PACKS[currentLevel.pack];
 
   return (
     <Animated.View entering={FadeIn.duration(240)} style={{ flex: 1 }}>
       <ScrollView
-        ref={scrollRef}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 44, gap: 16 }}
         showsVerticalScrollIndicator={false}
@@ -65,13 +59,8 @@ export function HomeScreen({
               <Text style={{ color: COLORS.ink, fontFamily: FONT.bold, fontSize: 15 }}>{coins}</Text>
             </StatChip>
             <StatChip>
-              <Text style={{ fontSize: 14 }}>{"⭐"}</Text>
-              <Text style={{ color: COLORS.ink, fontFamily: FONT.bold, fontSize: 15 }}>
-                {totalStars}
-                <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
-                  {` / ${LEVELS.length * 3}`}
-                </Text>
-              </Text>
+              <Text style={{ fontSize: 14 }}>{"\u2605"}</Text>
+              <Text style={{ color: COLORS.ink, fontFamily: FONT.bold, fontSize: 15 }}>{totalStars}</Text>
             </StatChip>
           </View>
           <IconButton image={UI_IMAGES.settings} onPress={onOpenSettings} size={42} />
@@ -79,7 +68,7 @@ export function HomeScreen({
 
         {/* Wordmark */}
         <View style={{ alignItems: "center", gap: 6, paddingTop: 4 }}>
-          <Text style={{ color: COLORS.ink, fontSize: 36, fontFamily: FONT.black, letterSpacing: 0.3 }}>
+          <Text style={{ color: COLORS.ink, fontSize: 36, fontFamily: FONT.black, letterSpacing: 0 }}>
             Pic Shuffle
           </Text>
           <View style={{ flexDirection: "row", gap: 6 }}>
@@ -89,9 +78,9 @@ export function HomeScreen({
           </View>
         </View>
 
-        {/* Continue — surfaces the current level so you never have to hunt for it */}
+        {/* Continue - jumps straight into the current level */}
         <Pressable
-          onPress={() => onOpenLevel(currentPlayable)}
+          onPress={() => onOpenLevel(currentGlobal)}
           style={({ pressed }) => ({
             backgroundColor: COLORS.surface,
             borderRadius: 22,
@@ -108,22 +97,22 @@ export function HomeScreen({
               width: 54,
               height: 54,
               borderRadius: 27,
-              backgroundColor: COLORS.pink,
+              backgroundColor: currentPack.accent,
               alignItems: "center",
               justifyContent: "center"
             }}
           >
             <Text style={{ color: COLORS.surface, fontFamily: FONT.black, fontSize: 22 }}>
-              {currentLevel.id}
+              {currentLevel.number}
             </Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>Continue</Text>
-            <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 19 }}>
-              {`Level ${currentLevel.id}`}
+            <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 19 }} numberOfLines={1}>
+              {`${currentPack.emoji} ${currentPack.name}`}
             </Text>
-            <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
-              {`${currentLevel.title} · ${currentLevel.grid}×${currentLevel.grid}`}
+            <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }} numberOfLines={1}>
+              {`Level ${currentLevel.number} - ${currentLevel.title} - ${currentLevel.grid}x${currentLevel.grid}`}
             </Text>
           </View>
           <View
@@ -136,7 +125,7 @@ export function HomeScreen({
               justifyContent: "center"
             }}
           >
-            <Text style={{ color: COLORS.pink, fontFamily: FONT.black, fontSize: 20, marginTop: -2 }}>▶</Text>
+            <Text style={{ color: COLORS.pink, fontFamily: FONT.black, fontSize: 20, marginTop: -2 }}>{">"}</Text>
           </View>
         </Pressable>
 
@@ -153,50 +142,138 @@ export function HomeScreen({
           <ActionTile
             image={UI_IMAGES.achievements}
             title="Goals"
-            subtitle={`${clearedLevels}/${LEVELS.length} cleared · ${perfectLevels} perfect`}
+            subtitle={`${clearedLevels}/${TOTAL_LEVELS} cleared - ${perfectLevels} perfect`}
             tint={COLORS.tealSoft}
             titleColor={COLORS.tealDark}
             onPress={onOpenAchievements}
           />
         </View>
 
-        {/* Level ladder */}
-        <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingTop: 2 }}>
-          <View>
-            <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 22 }}>Levels</Text>
-            <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
-              {`${clearedLevels} of ${LEVELS.length} cleared`}
-            </Text>
-          </View>
-          <Pressable
-            onPress={jumpToCurrent}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 999,
-              backgroundColor: COLORS.surface,
-              transform: [{ scale: pressed ? 0.96 : 1 }],
-              boxShadow: "0 3px 10px rgba(32,26,48,0.08)"
-            })}
-          >
-            <Text style={{ fontSize: 13 }}>{"📍"}</Text>
-            <Text style={{ color: COLORS.ink, fontFamily: FONT.bold, fontSize: 13 }}>Current</Text>
-          </Pressable>
+        {/* Packs */}
+        <View style={{ paddingTop: 2 }}>
+          <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 22 }}>Puzzle Packs</Text>
+          <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
+            {`Clear all ${PACK_SIZE} levels in a pack to unlock the next one.`}
+          </Text>
         </View>
 
-        <View onLayout={(event) => (pathY.current = event.nativeEvent.layout.y)}>
-          <LevelPath
-            width={width - 36}
-            unlocked={effectiveUnlocked}
-            currentIndex={currentPlayable}
-            stars={stars}
-            onSelect={onOpenLevel}
-          />
+        <View style={{ gap: 11 }}>
+          {PACKS.map((pack, index) => (
+            <PackCard
+              key={pack.id}
+              pack={pack}
+              index={index}
+              cleared={packClearedCount(stars, pack.index)}
+              earned={packStars(stars, pack.index)}
+              locked={!isPackUnlocked(stars, pack.index, unlockAll)}
+              isCurrent={pack.index === currentPack.index}
+              onPress={() => onOpenPack(pack.index)}
+            />
+          ))}
         </View>
       </ScrollView>
+    </Animated.View>
+  );
+}
+
+function PackCard({
+  pack,
+  index,
+  cleared,
+  earned,
+  locked,
+  isCurrent,
+  onPress
+}: {
+  pack: PackDef;
+  index: number;
+  cleared: number;
+  earned: number;
+  locked: boolean;
+  isCurrent: boolean;
+  onPress: () => void;
+}) {
+  const fraction = cleared / PACK_SIZE;
+  return (
+    <Animated.View entering={FadeInDown.delay(Math.min(40 + index * 40, 480)).duration(280)}>
+      <Pressable
+        disabled={locked}
+        onPress={onPress}
+        style={({ pressed }) => ({
+          backgroundColor: COLORS.surface,
+          borderRadius: 20,
+          padding: 13,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 13,
+          opacity: locked ? 0.62 : 1,
+          borderWidth: isCurrent ? 2 : 0,
+          borderColor: pack.accent,
+          transform: [{ scale: pressed ? 0.985 : 1 }],
+          boxShadow: isCurrent
+            ? "0 8px 18px rgba(32,26,48,0.12)"
+            : "0 5px 14px rgba(32,26,48,0.07)"
+        })}
+      >
+        <View
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 16,
+            backgroundColor: pack.accentSoft,
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <Text style={{ fontSize: 26 }}>{locked ? "LOCK" : pack.emoji}</Text>
+        </View>
+
+        <View style={{ flex: 1, gap: 4 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Text style={{ color: COLORS.ink, fontFamily: FONT.black, fontSize: 16 }} numberOfLines={1}>
+              {pack.name}
+            </Text>
+            {!locked && cleared > 0 && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                <Text style={{ fontSize: 11 }}>{"\u2605"}</Text>
+                <Text style={{ color: COLORS.muted, fontFamily: FONT.bold, fontSize: 12 }}>
+                  {`${earned}/${PACK_SIZE * 3}`}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {locked ? (
+            <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }}>
+              Finish the previous pack to unlock
+            </Text>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{
+                  flex: 1,
+                  height: 8,
+                  borderRadius: 999,
+                  backgroundColor: "rgba(32,26,48,0.07)",
+                  overflow: "hidden"
+                }}
+              >
+                <View
+                  style={{
+                    width: `${Math.round(fraction * 100)}%`,
+                    height: "100%",
+                    borderRadius: 999,
+                    backgroundColor: pack.accent
+                  }}
+                />
+              </View>
+              <Text style={{ color: COLORS.muted, fontFamily: FONT.bold, fontSize: 12 }}>
+                {`${cleared}/${PACK_SIZE}`}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -256,3 +333,5 @@ function ActionTile({
     </Pressable>
   );
 }
+
+

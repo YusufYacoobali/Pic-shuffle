@@ -1,20 +1,19 @@
-import { Image, Pressable, Text, View, type ImageSourcePropType } from "react-native";
+﻿import { Image, Pressable, Text, View } from "react-native";
 import Animated, { FadeInUp, ZoomIn } from "react-native-reanimated";
 
 import { Chip, GameButton, IconButton, StarRow } from "@/components/game-ui";
 import { UI_IMAGES } from "@/constants/assets";
-import { formatClock, sizeName, type Level } from "@/constants/levels";
+import { formatClock, sizeName } from "@/constants/levels";
+import { LEVEL_IMAGE_ASPECT, type LevelDef, type PackDef } from "@/constants/packs";
 import { COLORS, FONT, GRADIENTS } from "@/constants/theme";
 import { fitBoard } from "@/lib/board-layout";
 import { levelChipColor } from "@/lib/puzzle-rules";
 
 type ReadyScreenProps = {
-  level: Level;
-  levelIndex: number;
-  stars: Record<number, number>;
-  image: ImageSourcePropType;
-  isTimed: boolean;
-  timeLimit: number;
+  level: LevelDef;
+  pack: PackDef;
+  imageUri: string;
+  bestStars: number;
   onBack: () => void;
   onStart: () => void;
 };
@@ -35,31 +34,22 @@ type PhotoSetupScreenProps = {
   onStart: () => void;
 };
 
-export function ReadyScreen({
-  level,
-  levelIndex,
-  stars,
-  image,
-  isTimed,
-  timeLimit,
-  onBack,
-  onStart
-}: ReadyScreenProps) {
+export function ReadyScreen({ level, pack, imageUri, bestStars, onBack, onStart }: ReadyScreenProps) {
+  const preview = fitBoard(190, 250, LEVEL_IMAGE_ASPECT);
+  const isTimed = level.mode === "timed";
+
   return (
     <View style={{ flex: 1, padding: 18, gap: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <IconButton image={UI_IMAGES.back} onPress={onBack} />
-        <Text
-          style={{
-            flex: 1,
-            textAlign: "center",
-            color: COLORS.ink,
-            fontSize: 21,
-            fontFamily: FONT.black
-          }}
-        >
-          {`Level ${level.id}`}
-        </Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={{ color: COLORS.ink, fontSize: 20, fontFamily: FONT.black }} numberOfLines={1}>
+            {`${pack.emoji} Level ${level.number}`}
+          </Text>
+          <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 12 }} numberOfLines={1}>
+            {pack.name}
+          </Text>
+        </View>
         <View style={{ width: 44 }} />
       </View>
 
@@ -69,28 +59,55 @@ export function ReadyScreen({
           style={{
             backgroundColor: COLORS.surface,
             borderRadius: 32,
-            paddingVertical: 26,
+            paddingVertical: 22,
             paddingHorizontal: 22,
             alignItems: "center",
-            gap: 14,
+            gap: 13,
             boxShadow: "0 18px 44px rgba(123,92,255,0.18)"
           }}
         >
+          {level.kind !== "easy" && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
+                backgroundColor: level.kind === "boss" ? COLORS.gold : COLORS.purple,
+                paddingHorizontal: 13,
+                paddingVertical: 4,
+                borderRadius: 999
+              }}
+            >
+              <Text style={{ color: COLORS.surface, fontFamily: FONT.black, fontSize: 12 }}>
+                {level.kind === "boss" ? "BOSS PUZZLE" : "CHALLENGE"}
+              </Text>
+            </View>
+          )}
+
           <View
             style={{
-              padding: 10,
-              paddingBottom: 26,
+              padding: 9,
+              paddingBottom: 22,
               backgroundColor: COLORS.surface,
-              borderRadius: 18,
+              borderRadius: 16,
               transform: [{ rotate: "-2.5deg" }],
               boxShadow: "0 10px 26px rgba(42,33,64,0.16)"
             }}
           >
-            <Image source={image} resizeMode="cover" style={{ width: 184, height: 184, borderRadius: 10 }} />
+            <Image
+              source={{ uri: imageUri }}
+              resizeMode="cover"
+              style={{
+                width: preview.w,
+                height: preview.h,
+                borderRadius: 10,
+                backgroundColor: pack.accentSoft
+              }}
+            />
           </View>
 
           <View style={{ alignItems: "center", gap: 2 }}>
-            <Text style={{ color: COLORS.ink, fontSize: 28, fontFamily: FONT.black }}>{level.title}</Text>
+            <Text style={{ color: COLORS.ink, fontSize: 26, fontFamily: FONT.black }}>{level.title}</Text>
             <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 14 }}>
               {`${level.grid} x ${level.grid} pieces`}
             </Text>
@@ -99,17 +116,17 @@ export function ReadyScreen({
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Chip label={sizeName(level.grid)} color={levelChipColor(level.grid)} />
             <Chip
-              label={isTimed ? formatClock(timeLimit) : "Relaxed"}
+              label={isTimed ? formatClock(level.timeLimit) : "Relaxed"}
               color={isTimed ? COLORS.pink : COLORS.teal}
             />
           </View>
 
-          {(stars[levelIndex] ?? 0) > 0 && (
+          {bestStars > 0 && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={{ color: COLORS.muted, fontFamily: FONT.semi, fontSize: 13 }}>
                 Your best
               </Text>
-              <StarRow earned={stars[levelIndex]} size={17} />
+              <StarRow earned={bestStars} size={17} />
             </View>
           )}
         </Animated.View>
@@ -230,3 +247,4 @@ export function PhotoSetupScreen({
     </View>
   );
 }
+

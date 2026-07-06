@@ -1,4 +1,4 @@
-import { LinearGradient } from "expo-linear-gradient";
+﻿import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
 import {
   Image,
@@ -74,7 +74,7 @@ export function GameButton({
           color: textColor,
           fontSize: compact ? 19 : 23,
           fontFamily: FONT.black,
-          letterSpacing: 0.4
+          letterSpacing: 0
         }}
       >
         {label}
@@ -174,7 +174,7 @@ export function BadgeIcon({
   );
 }
 
-// A flat, on-brand coin — a gold disc with a soft inner ring and a star.
+// A flat, on-brand coin - a gold disc with a soft inner ring and a star.
 // Drawn (not an image) so it reads clean rather than AI-generated.
 export function Coin({ size = 26 }: { size?: number }) {
   return (
@@ -200,9 +200,7 @@ export function Coin({ size = 26 }: { size?: number }) {
           borderColor: "rgba(255,255,255,0.55)"
         }}
       />
-      <Text style={{ fontSize: size * 0.5, color: "#7A5300", fontFamily: FONT.black, marginTop: -1 }}>
-        ★
-      </Text>
+      <Text style={{ fontSize: size * 0.5, color: "#7A5300", fontFamily: FONT.black, marginTop: -1 }}>{"\u2605"}</Text>
     </View>
   );
 }
@@ -278,7 +276,7 @@ export function StarRow({
           key={slot}
           style={{ fontSize: size, opacity: slot < earned ? 1 : 0.18 }}
         >
-          {"⭐"}
+          {"\u2605"}
         </Text>
       ))}
     </View>
@@ -318,7 +316,7 @@ export function PopStar({ index, earned }: { index: number; earned: boolean }) {
           marginTop: index === 1 ? -10 : 0
         }}
       >
-        {"⭐"}
+        {"\u2605"}
       </Text>
     </Animated.View>
   );
@@ -377,52 +375,36 @@ export function Floaty({
 }
 
 export function BackgroundBlobs() {
+  const tiles = [
+    { top: 26, left: 22, size: 34, color: "rgba(255,77,151,0.14)", rotate: "-10deg" },
+    { top: 78, right: 28, size: 26, color: "rgba(46,211,191,0.16)", rotate: "13deg" },
+    { top: 180, left: -8, size: 42, color: "rgba(255,193,49,0.15)", rotate: "8deg" },
+    { top: 275, right: 14, size: 38, color: "rgba(123,92,255,0.13)", rotate: "-8deg" },
+    { bottom: 140, left: 24, size: 30, color: "rgba(46,211,191,0.14)", rotate: "-14deg" },
+    { bottom: 58, right: 34, size: 44, color: "rgba(255,77,151,0.12)", rotate: "9deg" }
+  ];
+
   return (
     <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
-      <View
-        style={{
-          position: "absolute",
-          top: -70,
-          right: -80,
-          width: 230,
-          height: 230,
-          borderRadius: 115,
-          backgroundColor: "rgba(255,77,151,0.09)"
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          top: 210,
-          left: -90,
-          width: 210,
-          height: 210,
-          borderRadius: 105,
-          backgroundColor: "rgba(123,92,255,0.08)"
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          bottom: 60,
-          right: -70,
-          width: 190,
-          height: 190,
-          borderRadius: 95,
-          backgroundColor: "rgba(46,211,191,0.10)"
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          bottom: -60,
-          left: -40,
-          width: 170,
-          height: 170,
-          borderRadius: 85,
-          backgroundColor: "rgba(255,193,49,0.10)"
-        }}
-      />
+      {tiles.map((tile, index) => (
+        <View
+          key={index}
+          style={{
+            position: "absolute",
+            top: tile.top,
+            left: tile.left,
+            right: tile.right,
+            bottom: tile.bottom,
+            width: tile.size,
+            height: tile.size,
+            borderRadius: 8,
+            backgroundColor: tile.color,
+            transform: [{ rotate: tile.rotate }]
+          }}
+        />
+      ))}
     </View>
   );
 }
+
+

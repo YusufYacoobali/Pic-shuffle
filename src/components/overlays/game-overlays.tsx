@@ -3,24 +3,28 @@ import Animated, { FadeInUp, ZoomIn } from "react-native-reanimated";
 
 import { BadgeIcon, GameButton, IconButton } from "@/components/game-ui";
 import { UI_IMAGES } from "@/constants/assets";
-import { LEVELS } from "@/constants/levels";
+import { getLevel, PACKS, TOTAL_LEVELS } from "@/constants/packs";
 import { COLORS, FONT, GRADIENTS } from "@/constants/theme";
 
 export function AchievementsModal({
   totalStars,
   clearedLevels,
   perfectLevels,
-  currentPlayable,
+  clearedPacks,
+  currentGlobal,
   onClose,
   onPlayCurrent
 }: {
   totalStars: number;
   clearedLevels: number;
   perfectLevels: number;
-  currentPlayable: number;
+  clearedPacks: number;
+  currentGlobal: number;
   onClose: () => void;
   onPlayCurrent: () => void;
 }) {
+  const current = getLevel(currentGlobal);
+  const currentPack = PACKS[current.pack];
   return (
     <Pressable
       onPress={onClose}
@@ -60,12 +64,18 @@ export function AchievementsModal({
           </View>
 
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <AchievementStat label="Stars" value={`${totalStars}/${LEVELS.length * 3}`} />
-            <AchievementStat label="Cleared" value={`${clearedLevels}/${LEVELS.length}`} />
+            <AchievementStat label="Stars" value={`${totalStars}/${TOTAL_LEVELS * 3}`} />
+            <AchievementStat label="Cleared" value={`${clearedLevels}/${TOTAL_LEVELS}`} />
           </View>
           <View style={{ flexDirection: "row", gap: 10 }}>
+            <AchievementStat label="Packs done" value={`${clearedPacks}/${PACKS.length}`} />
             <AchievementStat label="Perfect" value={String(perfectLevels)} />
-            <AchievementStat label="Current" value={`Lv ${LEVELS[currentPlayable].id}`} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <AchievementStat
+              label="Current"
+              value={`${currentPack.emoji} Lv ${current.number}`}
+            />
           </View>
 
           <GameButton
