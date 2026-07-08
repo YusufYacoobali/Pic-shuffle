@@ -8,21 +8,26 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFF4FA"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yacoobali.puzzle"
+      "bundleIdentifier": "com.yacoobali.puzzle",
+      "icon": "./assets/icon/icon-ios.png"
     },
     "android": {
       "package": "com.yacoobali.puzzle",
       "playStoreUrl": "https://play.google.com/store/apps/details?id=com.yacoobali.puzzle",
+      "icon": "./assets/icon/icon-android.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/icon/icon-android.png",
         "backgroundColor": "#FFF4FA"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -43,6 +48,9 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "a99bb589-c56a-4f0d-8751-c5d9a2334f24"
       }
     }
   }
