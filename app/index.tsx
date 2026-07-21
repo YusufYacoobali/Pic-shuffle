@@ -87,13 +87,20 @@ export default function PicShuffleScreen() {
   const [moves, setMoves] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
+  const [boardReady, setBoardReady] = useState(false);
+  const [gameSession, setGameSession] = useState(0);
   const [result, setResult] = useState<Result>(null);
   const [solved, setSolved] = useState(false);
   const [peeking, setPeeking] = useState(false);
   const [earnedStars, setEarnedStars] = useState(0);
 
   const [mode, setMode] = useState<Mode>("level");
-  const [photo, setPhoto] = useState<{ uri: string; aspect: number } | null>(null);
+  const [photo, setPhoto] = useState<{
+    uri: string;
+    aspect: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const [photoGrid, setPhotoGrid] = useState(3);
   const [boardArea, setBoardArea] = useState({ w: 0, h: 0 });
 
@@ -104,8 +111,17 @@ export default function PicShuffleScreen() {
   const activeGrid = mode === "photo" ? photoGrid : level.grid;
   const activeTimed = mode === "photo" ? false : level.mode === "timed";
   const activeTimeLimit = mode === "photo" ? 0 : level.timeLimit;
-  const activeImage: ImageSourcePropType =
-    mode === "photo" && photo ? { uri: photo.uri } : { uri: cachedImages[level.image] ?? level.image };
+  const activeImageUri =
+    mode === "photo" && photo ? photo.uri : cachedImages[level.image] ?? level.image;
+  // The game timer updates this component every second. Keep one source
+  // object per URI so dozens of tile images are not treated as new native
+  // image requests on every tick.
+  const activeImage = useMemo<ImageSourcePropType>(
+    () => ({ uri: activeImageUri }),
+    [activeImageUri]
+  );
+  const activeImageWidth = mode === "photo" && photo ? photo.width : 1080;
+  const activeImageHeight = mode === "photo" && photo ? photo.height : 1920;
   const activeAspect = mode === "photo" && photo ? photo.aspect : LEVEL_IMAGE_ASPECT;
 
   const board = fitBoard(boardArea.w, boardArea.h, activeAspect);
@@ -177,12 +193,12 @@ export default function PicShuffleScreen() {
   }, [coins, music, notifications, sound, stars]);
 
   useEffect(() => {
-    if (!running) return undefined;
+    if (!running || !boardReady) return undefined;
     const id = setInterval(() => {
       setSeconds((value) => (activeTimed ? Math.max(value - 1, 0) : value + 1));
     }, 1000);
     return () => clearInterval(id);
-  }, [activeTimed, running]);
+  }, [activeTimed, boardReady, running]);
 
   useEffect(() => {
     if (running && activeTimed && seconds === 0) {
@@ -272,6 +288,9 @@ export default function PicShuffleScreen() {
   // (Re)start the current puzzle - a level from the ready screen, or a photo
   // via Reset/Shuffle. Reads the active config, so it serves both modes.
   function startGame() {
+    setGameSession((value) => value + 1);
+    setBoardReady(false);
+    setBoardArea({ w: 0, h: 0 });
     setTiles(makeTiles(activeGrid));
     setMoves(0);
     setSeconds(activeTimed ? activeTimeLimit || 90 : 0);
@@ -294,7 +313,12 @@ export default function PicShuffleScreen() {
       if (res.canceled || !res.assets?.length) return;
       const asset = res.assets[0];
       const aspect = asset.width && asset.height ? asset.width / asset.height : 1;
-      setPhoto({ uri: asset.uri, aspect });
+      setPhoto({
+        uri: asset.uri,
+        aspect,
+        width: asset.width || 1,
+        height: asset.height || 1
+      });
       setMode("photo");
       setResult(null);
       setSolved(false);
@@ -306,6 +330,9 @@ export default function PicShuffleScreen() {
   }
 
   function startPhotoGame(grid: number) {
+    setGameSession((value) => value + 1);
+    setBoardReady(false);
+    setBoardArea({ w: 0, h: 0 });
     setMode("photo");
     setPhotoGrid(grid);
     setTiles(makeTiles(grid));
@@ -321,6 +348,7 @@ export default function PicShuffleScreen() {
 
   function goHome() {
     setRunning(false);
+    setBoardReady(false);
     setMode("level");
     setScreen("home");
     setResult(null);
@@ -332,6 +360,7 @@ export default function PicShuffleScreen() {
   // campaign levels, home for one-off photos.
   function exitPlay() {
     setRunning(false);
+    setBoardReady(false);
     setResult(null);
     setPeeking(false);
     setSolved(false);
@@ -483,8 +512,11 @@ export default function PicShuffleScreen() {
             activeTimeLimit={activeTimeLimit}
             lowTime={lowTime}
             board={board}
-            sessionKey={`${mode}-${photo?.uri ?? globalIndex}-${activeGrid}`}
+            sessionKey={`${mode}-${photo?.uri ?? globalIndex}-${activeGrid}-${gameSession}`}
             image={activeImage}
+            imageUri={activeImageUri}
+            imageWidth={activeImageWidth}
+            imageHeight={activeImageHeight}
             tiles={tiles}
             solved={solved}
             result={result}
@@ -494,6 +526,7 @@ export default function PicShuffleScreen() {
             onPeek={() => setPeeking(true)}
             onOpenSettings={() => setSettingsOpen(true)}
             onMove={handleBoardMove}
+            onReadyStateChange={setBoardReady}
             onBoardAreaChange={({ w, h }) => {
               setBoardArea((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
             }}

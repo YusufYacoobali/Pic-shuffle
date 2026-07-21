@@ -1,6 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from "react";
-import { Image, Text, View, type ImageSourcePropType } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  type ImageSourcePropType
+} from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -14,6 +22,12 @@ import { PuzzleBoard } from "@/components/puzzle-board";
 import { UI_IMAGES } from "@/constants/assets";
 import { formatClock } from "@/constants/levels";
 import { COLORS, FONT, GRADIENTS } from "@/constants/theme";
+import {
+  preparePuzzleImages,
+  type PreparedPuzzleImages
+} from "@/services/puzzle-tile-images";
+
+const StablePuzzleBoard = memo(PuzzleBoard);
 
 type BoardSize = {
   w: number;
@@ -32,6 +46,9 @@ type PlayScreenProps = {
   board: BoardSize;
   sessionKey: string;
   image: ImageSourcePropType;
+  imageUri: string;
+  imageWidth: number;
+  imageHeight: number;
   tiles: number[];
   solved: boolean;
   result: null | "win" | "timeup";
@@ -42,6 +59,7 @@ type PlayScreenProps = {
   onOpenSettings: () => void;
   onMove: (nextTiles: number[]) => void;
   onBoardAreaChange: (size: BoardSize) => void;
+  onReadyStateChange: (ready: boolean) => void;
 };
 
 export function PlayScreen({
@@ -56,6 +74,9 @@ export function PlayScreen({
   board,
   sessionKey,
   image,
+  imageUri,
+  imageWidth,
+  imageHeight,
   tiles,
   solved,
   result,
@@ -65,8 +86,82 @@ export function PlayScreen({
   onPeek,
   onOpenSettings,
   onMove,
-  onBoardAreaChange
+  onBoardAreaChange,
+  onReadyStateChange
 }: PlayScreenProps) {
+  // The clock redraws this header once a second. Keep the expensive board
+  // isolated from those redraws while still forwarding moves to the latest
+  // game-state handler.
+  const onMoveRef = useRef(onMove);
+  onMoveRef.current = onMove;
+  const handleMove = useCallback((nextTiles: number[]) => {
+    onMoveRef.current(nextTiles);
+  }, []);
+
+  const needsPreparedTiles = Platform.OS !== "web" && grid >= 6;
+  const preparationKey = [
+    imageUri,
+    imageWidth,
+    imageHeight,
+    grid,
+    Math.round(board.w),
+    Math.round(board.h)
+  ].join("|");
+  const [prepared, setPrepared] = useState<{
+    key: string;
+    images: PreparedPuzzleImages;
+  } | null>(null);
+  const [preparationError, setPreparationError] = useState<{ key: string } | null>(null);
+  const [preparationAttempt, setPreparationAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!needsPreparedTiles || board.w <= 0 || board.h <= 0) return undefined;
+    let cancelled = false;
+    setPreparationError(null);
+    preparePuzzleImages({
+      sourceUri: imageUri,
+      sourceWidth: imageWidth,
+      sourceHeight: imageHeight,
+      grid,
+      boardWidth: board.w,
+      boardHeight: board.h
+    })
+      .then((images) => {
+        if (!cancelled) setPrepared({ key: preparationKey, images });
+      })
+      .catch(() => {
+        if (!cancelled) setPreparationError({ key: preparationKey });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    board.h,
+    board.w,
+    grid,
+    imageHeight,
+    imageUri,
+    imageWidth,
+    needsPreparedTiles,
+    preparationAttempt,
+    preparationKey
+  ]);
+
+  const preparedImages = prepared?.key === preparationKey ? prepared.images : null;
+  const boardReady = !needsPreparedTiles || Boolean(preparedImages);
+  const displayImage = useMemo<ImageSourcePropType>(
+    () => (preparedImages ? { uri: preparedImages.fullImageUri } : image),
+    [image, preparedImages]
+  );
+  const tileImages = useMemo<ImageSourcePropType[] | undefined>(
+    () => preparedImages?.tileImageUris.map((uri) => ({ uri })),
+    [preparedImages]
+  );
+
+  useEffect(() => {
+    onReadyStateChange(boardReady);
+  }, [boardReady, onReadyStateChange, sessionKey]);
+
   return (
     <Animated.View
       entering={FadeIn.duration(220)}
@@ -119,21 +214,71 @@ export function PlayScreen({
           }}
         >
           <View style={{ width: board.w, height: board.h }}>
-            {board.w > 0 && board.h > 0 && (
-              <PuzzleBoard
+            {board.w > 0 && board.h > 0 && boardReady && (
+              <StablePuzzleBoard
                 key={sessionKey}
                 grid={grid}
                 tiles={tiles}
                 boardWidth={board.w}
                 boardHeight={board.h}
-                image={image}
+                image={displayImage}
+                tileImages={tileImages}
                 solved={solved}
                 disabled={Boolean(result) || peeking}
-                onMove={onMove}
+                onMove={handleMove}
               />
             )}
 
-            {peeking && (
+            {board.w > 0 && board.h > 0 && !boardReady && (
+              <View
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 12,
+                  padding: 24
+                }}
+              >
+                {preparationError?.key === preparationKey ? (
+                  <>
+                    <Text
+                      style={{
+                        color: COLORS.ink,
+                        fontFamily: FONT.bold,
+                        fontSize: 15,
+                        textAlign: "center"
+                      }}
+                    >
+                      Couldn&apos;t prepare this puzzle image.
+                    </Text>
+                    <Pressable
+                      onPress={() => setPreparationAttempt((value) => value + 1)}
+                      style={({ pressed }) => ({
+                        borderRadius: 999,
+                        paddingHorizontal: 18,
+                        paddingVertical: 9,
+                        backgroundColor: COLORS.purple,
+                        opacity: pressed ? 0.78 : 1
+                      })}
+                    >
+                      <Text style={{ color: COLORS.surface, fontFamily: FONT.bold, fontSize: 14 }}>
+                        Retry
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <ActivityIndicator size="large" color={COLORS.purple} />
+                    <Text style={{ color: COLORS.muted, fontFamily: FONT.bold, fontSize: 13 }}>
+                      Preparing memory-safe tiles…
+                    </Text>
+                  </>
+                )}
+              </View>
+            )}
+
+            {peeking && boardReady && (
               <Animated.View
                 entering={FadeIn.duration(160)}
                 pointerEvents="none"
@@ -154,7 +299,7 @@ export function PlayScreen({
                 }}
               >
                 <Image
-                  source={image}
+                  source={displayImage}
                   resizeMode="cover"
                   style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
                 />

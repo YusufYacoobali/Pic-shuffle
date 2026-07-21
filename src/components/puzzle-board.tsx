@@ -142,6 +142,7 @@ type PuzzleBoardProps = {
   boardWidth: number;
   boardHeight: number;
   image: ImageSourcePropType;
+  tileImages?: ImageSourcePropType[];
   solved: boolean;
   disabled: boolean;
   onMove: (nextTiles: number[]) => void;
@@ -153,6 +154,7 @@ export function PuzzleBoard({
   boardWidth,
   boardHeight,
   image,
+  tileImages,
   solved,
   disabled,
   onMove
@@ -176,7 +178,6 @@ export function PuzzleBoard({
   const [merge, setMerge] = useState<{ key: number; homes: number[] }>({ key: 0, homes: [] });
 
   const session = useSharedValue<DragSessionSV | null>(null);
-  const accepted = useSharedValue(false);
   const handoffRef = useRef({ dx: 0, dy: 0 });
   const overlayX = useSharedValue(0);
   const overlayY = useSharedValue(0);
@@ -190,6 +191,10 @@ export function PuzzleBoard({
   function beginDrag(cells: number[]) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setDrag({ cells });
+  }
+
+  function cancelDrag() {
+    setDrag(null);
   }
 
   function hoverTick() {
@@ -263,15 +268,35 @@ export function PuzzleBoard({
     onMove(next);
   }
 
+  // A native interruption (extra finger, Control Center gesture, app state
+  // change) can occasionally arrive without a usable finalize event. Never
+  // allow one abandoned drag to disable the board for the rest of the game.
+  useEffect(() => {
+    if (!drag) return undefined;
+    const watchdog = setTimeout(() => {
+      session.value = null;
+      ghostOn.value = 0;
+      liftScale.value = 1;
+      hoverKey.value = -1;
+      setDrag(null);
+    }, 10_000);
+    return () => clearTimeout(watchdog);
+  }, [drag, ghostOn, hoverKey, liftScale, session]);
+
   const pan = Gesture.Pan()
     .enabled(!disabled && !solved && ready)
     .maxPointers(1)
     .minDistance(0)
     .shouldCancelWhenOutside(false)
     .onBegin((event) => {
+      // A session at the start of a new gesture is stale. Clear it and accept
+      // the new touch instead of permanently rejecting every future drag.
       if (session.value) {
-        accepted.value = false;
-        return;
+        session.value = null;
+        ghostOn.value = 0;
+        liftScale.value = 1;
+        hoverKey.value = -1;
+        runOnJS(cancelDrag)();
       }
       const inX = event.x - padding;
       const inY = event.y - padding;
@@ -281,7 +306,11 @@ export function PuzzleBoard({
         inX > boardWidth - padding * 2 ||
         inY > boardHeight - padding * 2
       ) {
-        accepted.value = false;
+        session.value = null;
+        ghostOn.value = 0;
+        liftScale.value = 1;
+        hoverKey.value = -1;
+        runOnJS(cancelDrag)();
         return;
       }
       const col = clampValue(Math.floor((inX + gap / 2) / pitchX), 0, grid - 1);
@@ -302,7 +331,6 @@ export function PuzzleBoard({
       const originX = padding + minCol * pitchX;
       const originY = padding + minRow * pitchY;
 
-      accepted.value = true;
       session.value = {
         cells,
         anchorRow: minRow,
@@ -324,7 +352,7 @@ export function PuzzleBoard({
     })
     .onUpdate((event) => {
       const active = session.value;
-      if (!active || !accepted.value) return;
+      if (!active) return;
       overlayX.value = active.originX + event.translationX;
       overlayY.value = active.originY + event.translationY;
 
@@ -355,12 +383,22 @@ export function PuzzleBoard({
           groupByCell
         );
       ghostValidP.value = withTiming(valid ? 1 : 0, { duration: 120 });
-      runOnJS(hoverTick)();
+      // Dense boards cross many cells per drag. Avoid creating a fresh native
+      // iOS feedback generator for every hover; lift/drop feedback remains.
+      if (grid < 6) runOnJS(hoverTick)();
     })
     .onFinalize(() => {
       const active = session.value;
-      if (!active || !accepted.value) return;
-      accepted.value = false;
+      // Cleanup must happen even for rejected/cancelled gestures. The old
+      // early return here was what left 8x8 boards permanently frozen.
+      session.value = null;
+      ghostOn.value = 0;
+      liftScale.value = 1;
+      hoverKey.value = -1;
+      if (!active) {
+        runOnJS(cancelDrag)();
+        return;
+      }
 
       const col = clampValue(
         Math.round((overlayX.value - padding) / pitchX),
@@ -381,9 +419,6 @@ export function PuzzleBoard({
       const dx = overlayX.value - finalX;
       const dy = overlayY.value - finalY;
 
-      ghostOn.value = 0;
-      liftScale.value = 1;
-      session.value = null;
       runOnJS(resolveDrop)(cells, moved, rowDelta, colDelta, dx, dy);
     });
 
@@ -444,6 +479,7 @@ export function PuzzleBoard({
                 grid={grid}
                 geo={geo}
                 image={image}
+                tileImage={tileImages?.[home]}
                 solved={solved}
                 hidden={hiddenHomes.has(home)}
                 inGroup={groups[groupIndex].length > 1}
@@ -522,17 +558,31 @@ export function PuzzleBoard({
                     borderColor: "rgba(255,255,255,0.55)"
                   }}
                 >
-                  <Image
-                    source={image}
-                    resizeMode="cover"
-                    style={{
-                      position: "absolute",
-                      width: imageW,
-                      height: imageH,
-                      left: -colOf(home, grid) * pitchX,
-                      top: -rowOf(home, grid) * pitchY
-                    }}
-                  />
+                  {tileImages?.[home] ? (
+                    <Image
+                      source={tileImages[home]}
+                      resizeMode="stretch"
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        width: tileW + (colOf(home, grid) < grid - 1 ? gap : 0),
+                        height: tileH + (rowOf(home, grid) < grid - 1 ? gap : 0)
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      source={image}
+                      resizeMode="cover"
+                      style={{
+                        position: "absolute",
+                        width: imageW,
+                        height: imageH,
+                        left: -colOf(home, grid) * pitchX,
+                        top: -rowOf(home, grid) * pitchY
+                      }}
+                    />
+                  )}
                 </View>
               );
             })}
@@ -646,6 +696,7 @@ type TileViewProps = {
   grid: number;
   geo: Geometry;
   image: ImageSourcePropType;
+  tileImage?: ImageSourcePropType;
   solved: boolean;
   hidden: boolean;
   inGroup: boolean;
@@ -660,6 +711,7 @@ function TileView({
   grid,
   geo,
   image,
+  tileImage,
   solved,
   hidden,
   inGroup,
@@ -753,20 +805,37 @@ function TileView({
           borderColor: "rgba(255,255,255,0.42)",
           zIndex: inGroup ? 2 : 1,
           opacity: hidden ? 0 : 1,
-          boxShadow: solved || inGroup ? "none" : "inset 0 0 0 1px rgba(255,255,255,0.16)"
+          boxShadow:
+            solved || inGroup || grid >= 6
+              ? "none"
+              : "inset 0 0 0 1px rgba(255,255,255,0.16)"
         },
         positionStyle,
         morphStyle
       ]}
     >
-      <Animated.Image
-        source={image}
-        resizeMode="cover"
-        style={[
-          { position: "absolute", left: 0, top: 0, width: imageW, height: imageH },
-          imageStyle
-        ]}
-      />
+      {tileImage ? (
+        <Animated.Image
+          source={tileImage}
+          resizeMode="stretch"
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: tileW + (imageCol < grid - 1 ? gap : 0),
+            height: tileH + (imageRow < grid - 1 ? gap : 0)
+          }}
+        />
+      ) : (
+        <Animated.Image
+          source={image}
+          resizeMode="cover"
+          style={[
+            { position: "absolute", left: 0, top: 0, width: imageW, height: imageH },
+            imageStyle
+          ]}
+        />
+      )}
       <Animated.View
         pointerEvents="none"
         style={[
