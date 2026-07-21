@@ -1,13 +1,13 @@
 import * as FileSystem from "expo-file-system/legacy";
 
-import { getPackLevels, PACKS } from "@/constants/packs";
+import { getPackLevels } from "@/constants/packs";
 
-const CACHE_DIR = `${FileSystem.documentDirectory ?? ""}puzzle-images/`;
+const CACHE_DIR = `${FileSystem.cacheDirectory ?? ""}puzzle-images/`;
+const LEGACY_CACHE_DIR = `${FileSystem.documentDirectory ?? ""}puzzle-images/`;
 const MAX_PARALLEL_DOWNLOADS = 2;
 
-type CacheProgress = (remoteUri: string, localUri: string) => void;
-
 const inFlight = new Map<string, Promise<string>>();
+let legacyCleanup: Promise<void> | undefined;
 
 function hashUri(uri: string) {
   let hash = 2166136261;
@@ -23,13 +23,19 @@ function localUriForRemote(remoteUri: string) {
 }
 
 async function ensureCacheDir() {
-  if (!FileSystem.documentDirectory) return false;
+  if (!FileSystem.cacheDirectory) return false;
+  if (!legacyCleanup) {
+    legacyCleanup = FileSystem.documentDirectory
+      ? FileSystem.deleteAsync(LEGACY_CACHE_DIR, { idempotent: true }).catch(() => {})
+      : Promise.resolve();
+  }
+  await legacyCleanup;
   await FileSystem.makeDirectoryAsync(CACHE_DIR, { intermediates: true }).catch(() => {});
   return true;
 }
 
 export function getPuzzleImageCacheUri(remoteUri: string) {
-  if (!FileSystem.documentDirectory) return remoteUri;
+  if (!FileSystem.cacheDirectory) return remoteUri;
   return localUriForRemote(remoteUri);
 }
 
@@ -64,29 +70,19 @@ export async function cachePuzzleImage(remoteUri: string) {
   return task;
 }
 
-function unique(values: string[]) {
-  return [...new Set(values.filter(Boolean))];
-}
-
-export function packImageUris(packIndex: number) {
-  return unique(getPackLevels(packIndex).map((level) => level.image));
-}
-
-export function allPackImageUris() {
-  return unique(PACKS.flatMap((pack) => packImageUris(pack.index)));
-}
-
-async function cacheQueue(remoteUris: string[], onProgress?: CacheProgress) {
-  const queue = unique(remoteUris);
+export async function cachePuzzleImagePack(packIndex: number) {
+  const remoteUris = [
+    ...new Set(getPackLevels(packIndex).map((level) => level.image).filter(Boolean))
+  ];
+  const cached: Record<string, string> = {};
   let cursor = 0;
 
   async function worker() {
-    while (cursor < queue.length) {
-      const remoteUri = queue[cursor];
+    while (cursor < remoteUris.length) {
+      const remoteUri = remoteUris[cursor];
       cursor += 1;
       try {
-        const localUri = await cachePuzzleImage(remoteUri);
-        onProgress?.(remoteUri, localUri);
+        cached[remoteUri] = await cachePuzzleImage(remoteUri);
       } catch {
         // Non-fatal: image components still fall back to the remote URL.
       }
@@ -94,16 +90,7 @@ async function cacheQueue(remoteUris: string[], onProgress?: CacheProgress) {
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(MAX_PARALLEL_DOWNLOADS, queue.length) }, () => worker())
+    Array.from({ length: Math.min(MAX_PARALLEL_DOWNLOADS, remoteUris.length) }, () => worker())
   );
-}
-
-export async function warmPuzzleImageLibrary(currentPackIndex: number, onProgress?: CacheProgress) {
-  const clampedPack = Math.max(0, Math.min(PACKS.length - 1, currentPackIndex));
-  const nextPack = Math.min(PACKS.length - 1, clampedPack + 1);
-  const priority = unique([...packImageUris(clampedPack), ...packImageUris(nextPack)]);
-  const remaining = allPackImageUris().filter((uri) => !priority.includes(uri));
-
-  await cacheQueue(priority, onProgress);
-  await cacheQueue(remaining, onProgress);
+  return cached;
 }

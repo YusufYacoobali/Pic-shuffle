@@ -40,15 +40,18 @@ import {
   shouldShowReviewPrompt
 } from "@/services/native-cadence";
 import {
+  cachePuzzleImagePack,
   cachePuzzleImage,
-  resolveCachedPuzzleImage,
-  warmPuzzleImageLibrary
+  resolveCachedPuzzleImage
 } from "@/services/puzzle-image-cache";
 
 const PHOTO_GRIDS = [
   { grid: 3, label: "Easy", color: COLORS.teal },
   { grid: 4, label: "Normal", color: COLORS.yellow },
-  { grid: 5, label: "Hard", color: COLORS.pink }
+  { grid: 5, label: "Hard", color: COLORS.pink },
+  { grid: 6, label: "Very hard", color: COLORS.purple },
+  { grid: 7, label: "Expert", color: COLORS.pink },
+  { grid: 8, label: "Extreme", color: COLORS.pink }
 ];
 
 const SAVE_KEY = "picshuffle.save.v1";
@@ -114,7 +117,6 @@ export default function PicShuffleScreen() {
     [stars]
   );
   const currentProgressPack = getLevel(currentGlobal).pack;
-
   const rememberCachedImage = useCallback((remoteUri: string, localUri: string) => {
     setCachedImages((current) =>
       current[remoteUri] === localUri ? current : { ...current, [remoteUri]: localUri }
@@ -198,13 +200,16 @@ export default function PicShuffleScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    warmPuzzleImageLibrary(currentProgressPack, (remoteUri, localUri) => {
-      if (!cancelled) rememberCachedImage(remoteUri, localUri);
-    }).catch(() => {});
+    cachePuzzleImagePack(currentProgressPack)
+      .then((images) => {
+        if (cancelled || Object.keys(images).length === 0) return;
+        setCachedImages((current) => ({ ...current, ...images }));
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [currentProgressPack, rememberCachedImage]);
+  }, [currentProgressPack]);
 
   useEffect(() => {
     if (mode !== "level") return;

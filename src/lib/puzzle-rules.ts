@@ -20,7 +20,7 @@ export function makeTiles(grid: number) {
 }
 
 export function levelChipColor(grid: number) {
-  if (grid <= 3) return COLORS.teal;
-  if (grid === 4) return COLORS.yellow;
+  if (grid <= 4) return COLORS.teal;
+  if (grid === 5) return COLORS.yellow;
   return COLORS.pink;
 }

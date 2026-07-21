@@ -190,7 +190,7 @@ export function PhotoSetupScreen({
 
         <View style={{ alignItems: "center", gap: 12 }}>
           <Text style={{ color: COLORS.ink, fontFamily: FONT.bold, fontSize: 16 }}>Choose difficulty</Text>
-          <View style={{ flexDirection: "row", gap: 10 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
             {options.map((option) => {
               const selected = photoGrid === option.grid;
               return (
@@ -201,7 +201,8 @@ export function PhotoSetupScreen({
                     alignItems: "center",
                     gap: 3,
                     paddingVertical: 12,
-                    paddingHorizontal: 20,
+                    width: 112,
+                    paddingHorizontal: 10,
                     borderRadius: 18,
                     backgroundColor: selected ? option.color : COLORS.surface,
                     borderWidth: 2.5,

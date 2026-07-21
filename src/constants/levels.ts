@@ -1,7 +1,8 @@
 export function sizeName(grid: number) {
-  if (grid <= 3) return "Easy";
-  if (grid === 4) return "Normal";
-  return "Hard";
+  if (grid <= 4) return "Easy";
+  if (grid === 5) return "Normal";
+  if (grid === 6) return "Hard";
+  return "Extra hard";
 }
 
 export function formatClock(seconds: number) {

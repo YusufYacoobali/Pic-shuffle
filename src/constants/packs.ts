@@ -175,12 +175,13 @@ export const TOTAL_LEVELS = PACKS.length * PACK_SIZE; // 300
 export const LEVEL_IMAGE_ASPECT = 9 / 16;
 
 // Base time budgets (seconds) for timed levels, by grid size.
-const BASE_TIME: Record<number, number> = { 3: 90, 4: 165, 5: 250 };
+const BASE_TIME: Record<number, number> = { 4: 165, 5: 250, 6: 360, 7: 490 };
 
 function gridForSlot(slot: number) {
-  if (slot >= 17) return 5; // late levels + boss
-  if (slot >= 8) return 4; // mid levels
-  return 3; // early levels
+  if (slot >= 18) return 7; // final stretch + boss
+  if (slot >= 12) return 6;
+  if (slot >= 6) return 5;
+  return 4; // opening levels
 }
 
 function kindForSlot(slot: number): LevelKind {
